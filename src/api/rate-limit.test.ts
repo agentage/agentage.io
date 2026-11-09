@@ -12,11 +12,22 @@ describe('the per-ip limit', () => {
     expect(() => limit('203.0.113.7')).not.toThrow();
   });
 
-  it('names when to retry', () => {
+  it('names when to retry, counted from the ip own window', () => {
     let t = 0;
     const limit = createRateLimit(() => t);
+    t = 10 * 60 * 1000;
     for (let i = 0; i < 10; i++) limit('a');
-    t = 60_000;
+    t += 60_000;
     expect(() => limit('a')).toThrow(expect.objectContaining({ retryAfter: 840 }));
+  });
+
+  it('drops ended windows once per window, so the map stays bounded', () => {
+    let t = 0;
+    const limit = createRateLimit(() => t);
+    limit('a');
+    limit('b');
+    t = 15 * 60 * 1000;
+    limit('c');
+    expect(limit.size()).toBe(1);
   });
 });
