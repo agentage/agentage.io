@@ -3,15 +3,14 @@ import tsParser from '@typescript-eslint/parser';
 import prettierPlugin from 'eslint-plugin-prettier';
 import prettierConfig from 'eslint-config-prettier';
 import playwrightPlugin from 'eslint-plugin-playwright';
-import jsxA11y from 'eslint-plugin-jsx-a11y';
-import reactHooks from 'eslint-plugin-react-hooks';
 
 export default [
   {
-    ignores: ['dist/**', 'coverage/**', 'test-results/**'],
+    // site/ is the landing source, copied as is (counted apart); next build type-checks it.
+    ignores: ['dist/**', 'coverage/**', 'test-results/**', 'site/**'],
   },
   {
-    files: ['src/**/*.{ts,tsx}', '*.ts'],
+    files: ['src/**/*.ts', '*.ts'],
     languageOptions: {
       parser: tsParser,
       parserOptions: { project: './tsconfig.eslint.json' },
@@ -54,10 +53,5 @@ export default [
       'playwright/missing-playwright-await': 'error',
       'playwright/no-force-option': 'error',
     },
-  },
-  {
-    files: ['src/ui/**/*.tsx'],
-    plugins: { 'jsx-a11y': jsxA11y, 'react-hooks': reactHooks },
-    rules: { ...jsxA11y.flatConfigs.recommended.rules, ...reactHooks.configs.recommended.rules },
   },
 ];

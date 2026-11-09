@@ -42,6 +42,10 @@ jobs:
     runs-on: ubuntu-latest
     # The gate on local stays under 10 minutes; slower is a regression.
     timeout-minutes: 10
+    # up mounts each declared secret; resend off sends no mail, the gate signs unsubscribe links with this value.
+    env:
+      AGENTAGE_SECRET_RESEND: 'off'
+      AGENTAGE_SECRET_UNSUBSCRIBE: 'local-unsubscribe-secret'
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -84,16 +88,18 @@ jobs:
       - name: e2e gate on local (agentage/e2e, a row in its extensions.json)
         if: github.actor != 'dependabot[bot]' && github.event.pull_request.head.repo.fork != true
         working-directory: e2e-suite
+        # root's only token route is the root:admin list; the gate's default local token is root:read.
         run: |
           var="$(jq -r .agentage.id ../package.json | tr a-z- A-Z_)_DIR"
-          env "$var=$GITHUB_WORKSPACE" npm run e2e -- root gate local
+          ROOT_TOKEN="$(cd .. && node_modules/.bin/agentage extension token --scope root:admin)"
+          env "$var=$GITHUB_WORKSPACE" ROOT_TOKEN="$ROOT_TOKEN" npm run e2e -- root gate local
 
       # A gate that skipped itself is not green.
       - name: Assert the gate was not vacuous
         if: github.actor != 'dependabot[bot]' && github.event.pull_request.head.repo.fork != true
         working-directory: e2e-suite
         env:
-          MIN_EXECUTED: '25'
+          MIN_EXECUTED: '30'
         run: node scripts/assert-executed.mjs
 
       - name: Logs on failure

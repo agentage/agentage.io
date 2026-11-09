@@ -1,17 +1,15 @@
-# extension-root
+# agentage.io
 
-An agentage extension with one of every part: pages, ui, api, mcp, worker, store and cli. Start a
-new extension from it, keep the parts you need, and ship it to `next` in one day.
-
-## Start
+The `root` extension (`@agentage/extension-root`): the agentage.io site as a static export, the
+subscribers api and the two discovery documents (`/.well-known/agentage.json`,
+`/.well-known/mcp-registry-auth`). Account routes live in
+[agentage/extension-platform](https://github.com/agentage/extension-platform).
 
 ```bash
-agentage extension create <id> [part...]   # no part = all seven
-cd extension-<id> && npm ci && npm run build && agentage extension check
-npm run verify                             # type-check, lint, format, tests, build
+npm ci && npm run verify                   # type-check, lint, format, tests, site export, build
+npx agentage extension check               # PASS root <version> conforms
 ```
 
 ## The one page
 
-[CLAUDE.md](CLAUDE.md): what an extension is, how to write parts, the loop on a laptop, release,
-the estate row, how to operate it and what the platform promises.
+[CLAUDE.md](CLAUDE.md): the parts, the site export, the loop on a laptop, release, the estate row.

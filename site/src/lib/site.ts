@@ -1,0 +1,46 @@
+import { links } from '@/lib/origins';
+
+// Build-time origin for static metadata (canonical/OG/JSON-LD), inlined from the
+// NEXT_PUBLIC_SITE_FQDN build arg (derived from SITE_FQDN). The browser can't read
+// runtime env, so these are necessarily build-baked.
+export const SITE_URL = links(process.env.NEXT_PUBLIC_SITE_FQDN).site;
+
+// Public hosts for browser-side links/fetches (build-baked, same as SITE_URL): the
+// dashboard nav target and the backend API base (api.<fqdn>/api). The waitlist +
+// unsubscribe calls hit ${API_URL}/… cross-origin (backend CORS trusts the apex).
+export const API_URL = links(process.env.NEXT_PUBLIC_SITE_FQDN).api;
+export const DASHBOARD_URL = links(process.env.NEXT_PUBLIC_SITE_FQDN).dashboard;
+
+// Docs base for canonical/OG/JSON-LD. Its own host in prod (docs.<fqdn>, served by
+// this same container), the site's /docs path locally - so docUrl() works on both.
+export const DOCS_URL = links(process.env.NEXT_PUBLIC_SITE_FQDN).docs;
+
+export function errorReportEndpoint(apiUrl: string): string {
+  return `${apiUrl.replace(/\/+$/, '')}/errors/report`;
+}
+
+// Browser error collector on the backend - same build-baked host as the waitlist calls.
+export const ERROR_REPORT_URL = errorReportEndpoint(API_URL);
+
+// The MCP catalog is its own host (catalog.<fqdn>) under /mcp. No `catalog` origin
+// in shared links() yet, so derive it from the apex - build-baked per environment,
+// same as DASHBOARD_URL (prod -> catalog.agentage.io, dev -> catalog.dev.agentage.io).
+export const CATALOG_URL = SITE_URL.startsWith('https://')
+  ? `${SITE_URL.replace('https://', 'https://catalog.')}/mcp`
+  : `${SITE_URL}/mcp`;
+
+// Runtime origin from SITE_FQDN so dynamic routes (robots/sitemap/llms) emit the
+// correct URLs without a rebuild.
+export function getSiteUrl(): string {
+  return links(process.env.SITE_FQDN).site;
+}
+
+// Runtime docs base, same reasoning as getSiteUrl (sitemap/llms emit docs-origin URLs).
+export function getDocsUrl(): string {
+  return links(process.env.SITE_FQDN).docs;
+}
+
+export const SITE_NAME = 'Agentage Memory';
+export const SITE_TAGLINE = 'One memory. Every AI. Owned by you.';
+export const GITHUB_URL = 'https://github.com/agentage';
+export const CONTACT_EMAIL = 'support@agentage.io';

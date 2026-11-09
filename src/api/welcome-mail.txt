@@ -1,0 +1,12 @@
+You're in.
+
+AgentAge Memory is one memory you own - plain markdown that's yours to export anytime.
+Claude, Cursor, and ChatGPT all read and write it over MCP, so every AI shares the same
+memory. Open and portable - never locked to one vendor.
+
+You'll only hear from us about your spot and major launch news - nothing else.
+
+See what we're building: {{site}}
+
+One memory. Every AI. Owned by you.
+AgentAge - agentage.io{{unsubscribe}}
