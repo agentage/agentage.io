@@ -193,4 +193,17 @@ describe('the per-ip limit', () => {
     expect(res.status).toBe(429);
     expect(res.headers.get('retry-after')).toBeTruthy();
   });
+
+  it('never refuses a valid unsubscribe link, so one-clicks from a shared ip all land', async () => {
+    const ip = { 'x-forwarded-for': '192.0.2.98' };
+    const call = (email: string, token: string) =>
+      s.anon.fetch(`/api/v1/subscribers/unsubscribe?email=${email}&token=${token}`, {
+        method: 'POST',
+        headers: ip,
+      });
+    for (let i = 0; i < 10; i++) expect((await call('bad@example.com', 'x')).status).toBe(400);
+    expect((await call('bad@example.com', 'x')).status).toBe(429);
+    const good = await call('ok@example.com', signEmail('ok@example.com', SECRET));
+    expect(good.status).toBe(200);
+  });
 });

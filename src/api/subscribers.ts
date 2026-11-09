@@ -43,10 +43,12 @@ const unsubscribeRoute = (ctx: ApiContext, limit: Limit) => {
   const spec = { summary: 'Unsubscribe by a signed link', scope: 'public' } as const;
   const full = { ...spec, query: UnsubscribeQuerySchema, output: z.object({}) };
   ctx.route('post', '/subscribers/unsubscribe', full, async ({ query, ip }) => {
-    limit(ip);
     const secret = ctx.secrets.unsubscribe;
-    if (!secret || !query.email || !verifyEmail(query.email, query.token, secret))
+    // Only bad links count: RFC 8058 one-clicks arrive from a mail provider's few shared ips.
+    if (!secret || !query.email || !verifyEmail(query.email, query.token, secret)) {
+      limit(ip);
       throw fail('VALIDATION_ERROR', 'Invalid unsubscribe link', BAD_LINK);
+    }
     await removeSubscriber(ctx.store, query.email);
     return {};
   });
@@ -64,7 +66,7 @@ const listRoute = (ctx: ApiContext) => {
   });
 };
 
-// C8: anonymous join and unsubscribe (one per-ip limit, counted first, as web), the list for root:admin.
+// C8: anonymous join and unsubscribe (one per-ip limit, as web), the list for root:admin.
 export const subscriberRoutes = (ctx: ApiContext) => {
   const limit = createRateLimit();
   joinRoute(ctx, limit);
