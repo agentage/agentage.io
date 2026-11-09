@@ -13,15 +13,26 @@ and [`@agentage/widget`](https://www.npmjs.com/package/@agentage/widget).
 - The kit owns the server, `/health`, auth, the store pool, the scheduler and the images. You
   write only the part code.
 
-| Part   | Folder                  | What it does here                                               |
-| ------ | ----------------------- | --------------------------------------------------------------- |
-| pages  | `src/pages`             | `/` shows `{id} {version} · {commit}`                           |
-| ui     | `src/ui`                | the widget `<{id}-echo>`, served at `/ui/{version}/{id}.js`     |
-| api    | `src/api`               | `GET /api/v1/echo?msg=` (scope `{id}:read`), `GET /api/v1/ping` |
-| mcp    | `src/mcp`               | the tool `{id}__echo` (scope `{id}:read`) on `POST /mcp`        |
-| worker | `src/worker`            | the job `tick`, every minute; it logs `tick` and uses no store  |
-| store  | `migrations/`, `seeds/` | postgres; `GET /api/v1/ping` counts its `pings` rows            |
-| cli    | `src/cli`               | `agentage ping [msg]` prints `pong`                             |
+| Part  | Folder               | What it does here                                                         |
+| ----- | -------------------- | ------------------------------------------------------------------------- |
+| pages | `src/pages`, `site/` | the agentage.io site: `site/` is exported static into `dist/pages/site/`  |
+| api   | `src/api`            | `/api/v1/subscribers` and the two `/.well-known/` documents, nothing else |
+| store | `migrations/`        | postgres; the `subscribers` table                                         |
+
+- The apex holds no account route: machines and installations live in `agentage/extension-platform`.
+
+## The site (`site/`)
+
+- `site/` is the landing source (`packages/landing` at d4b5406 plus `packages/shared/src/origins.ts`
+  as `src/lib/origins.ts`), patched for `output: 'export'`. It has its own `package.json` and lockfile;
+  Next is never a dependency of the extension.
+- `npm run build` runs `scripts/export-site.mjs`: `next build` with the host token
+  `site-fqdn.sentinel.invalid`, then `out/` to `dist/pages/site/`, `blog-md/<slug>` to
+  `blog/<slug>.md` (same for docs), the baked `mcp-registry-auth` dropped. The kit swaps the token
+  for the deployment's host at start.
+- lint and format skip `site/` (copied, counted apart); `next build` type-checks it.
+- Until the cutover (5.1) a content change lands in agentage/landing and here the same day; the
+  parity run shows a miss.
 
 ## 2. Start
 

@@ -6,3 +6,5 @@ package-lock.json
 *.tsbuildinfo
 test-results
 playwright-report
+# the landing source, copied as is (counted apart)
+site

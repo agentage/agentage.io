@@ -10,3 +10,6 @@ test-results/
 playwright-report/
 .agentage/
 .kit/
+site/.next/
+site/out/
+site/next-env.d.ts

@@ -1,0 +1,265 @@
+// Single source of truth for "how to connect" content, shared by the docs
+// page, llms.txt, llms-full.txt, and the /docs.md mirror.
+import { docUrl } from '../docs/host-routing';
+
+export const MCP_ENDPOINT = 'memory.agentage.io/mcp';
+export const MCP_ENDPOINT_URL = `https://${MCP_ENDPOINT}`;
+
+// OAuth AS host the client opens on first connect (fixed service, same in every
+// environment - not derived from the landing site's FQDN).
+export const MCP_AUTH_ORIGIN = 'auth.agentage.io';
+
+export const MCP_AUTH_NOTE =
+  'OAuth 2.1 with PKCE and dynamic client registration - sign in once in the browser, no API key.';
+
+// --- REST API (v1) --------------------------------------------------------
+// Single source of truth for the REST endpoints (reads and writes) documented
+// at /docs/rest-api. Reuses the same OAuth token as the MCP server.
+export const REST_API_BASE_URL = 'https://api.agentage.io';
+export const REST_API_VERSION = 'v1';
+export const REST_RATE_LIMIT_PER_MIN = 60;
+export const REST_AUTH_NOTE =
+  'OAuth 2.1 bearer token - the same token issued when you connect any MCP client. No API key. memory:read gates reads, memory:write gates writes.';
+
+// The pre-rename noun still answers as a deprecated alias (RFC 8594 headers), not removed.
+export const REST_VAULTS_ALIAS_SUNSET = 'Sun, 08 Feb 2027 00:00:00 GMT';
+export const REST_VAULTS_ALIAS_NOTE = `\`/v1/vaults/*\` still resolves, as a deprecated alias of \`/v1/memories/*\`, sunsetting ${REST_VAULTS_ALIAS_SUNSET}. It is a path alias, not a shape-compat layer: responses already use the new memories field names. Every response on the alias carries \`Deprecation: true\`, \`Sunset: ${REST_VAULTS_ALIAS_SUNSET}\`, and \`Link: </v1/memories>; rel="successor-version"\`.`;
+
+// The 12 live routes under /v1/memories, for the compact llms-full.txt REST section.
+export const REST_LIVE_ENDPOINTS: ReadonlyArray<readonly [string, string]> = [
+  ['GET /v1/memories', 'List the memories your token can see.'],
+  ['POST /v1/memories', 'Create a memory. Idempotent on an existing name.'],
+  ['GET /v1/memories/{memory}', 'Memory stats: counts, size, rev, last activity.'],
+  ['DELETE /v1/memories/{memory}', 'Retire a memory (recoverable).'],
+  [
+    'GET /v1/memories/{memory}/notes',
+    'List notes and folders, paginated, filterable by folder/type/tags.',
+  ],
+  ['GET /v1/memories/{memory}/notes/{path}', 'Read one note: frontmatter + markdown body.'],
+  ['PUT /v1/memories/{memory}/notes/{path}', 'Create or replace a note.'],
+  ['PATCH /v1/memories/{memory}/notes/{path}', 'Edit a note: replace, append, or str_replace.'],
+  ['DELETE /v1/memories/{memory}/notes/{path}', 'Delete a note (recoverable).'],
+  ['GET /v1/memories/{memory}/search', 'Keyword search, ranked, snippets only.'],
+  ['GET /v1/memories/{memory}/export', 'Stream one memory as a cloneable git bundle.'],
+  ['GET /v1/memories/export', 'Stream every visible memory as one zip.'],
+];
+
+// --- CLI (@agentage/cli) --------------------------------------------------
+// Single source of truth for the CLI facts documented at /docs/cli.
+export const CLI_PACKAGE = '@agentage/cli';
+export const CLI_INSTALL_COMMAND = `npm install -g ${CLI_PACKAGE}`;
+// One-line remote installer (serves public/install.sh) - the primary install path.
+export const INSTALL_SCRIPT_COMMAND = 'curl -fsSL https://agentage.io/install.sh | bash';
+
+// One-line positioning, shared by the docs page header + the markdown mirrors. Leads with
+// the differentiator: cross-vendor (names the clients) + files-first ownership.
+export const DOCS_INTRO =
+  'Connect any MCP client to one shared markdown memory through a single endpoint. Sign in with OAuth and Claude, ChatGPT, Cursor, and your other AI tools read and write the same notes - plain markdown you own and can export anytime.';
+
+// What the tools do NOT do: they fire only on memory-relevant requests, never on ordinary
+// questions. Documents the negative behavior reviewers probe (no spurious tool calls).
+export const TOOL_SCOPE_NOTE =
+  'The memory tools run only when your request is about your notes - everyday questions like facts, math, or writing are answered normally, without touching your memory.';
+
+export const MCP_TOOLS: ReadonlyArray<readonly [string, string]> = [
+  ['memory__search', 'Find notes by keyword across the whole memory.'],
+  ['memory__read', 'Read a note by path.'],
+  ['memory__write', 'Create or replace a note.'],
+  ['memory__edit', 'Apply a targeted edit to a note.'],
+  ['memory__list', 'Browse the folder tree - subfolders with file counts, two levels deep.'],
+  ['memory__delete', 'Remove a note.'],
+];
+
+export const EXAMPLE_PROMPTS: ReadonlyArray<{
+  prompt: string;
+  outcome: string;
+  tools: string;
+}> = [
+  {
+    prompt: 'Search my memory for "postgres" and read the top result.',
+    outcome:
+      'Ranks notes mentioning postgres by match count, then returns the top note in full (frontmatter + markdown body).',
+    tools: 'memory__search -> memory__read',
+  },
+  {
+    prompt: 'Save a note at projects/acme/stack.md: we use Postgres for full-text search.',
+    outcome:
+      'Creates (or fully replaces) that note. It persists server-side and is readable from every AI you connect to the same account.',
+    tools: 'memory__write',
+  },
+  {
+    prompt: 'List everything under projects/ and tag the roadmap note as launched.',
+    outcome:
+      'Shows the folder tree under projects/ (subfolders with file counts + notes), then shallow-merges a launched tag into the roadmap note frontmatter without rewriting the body.',
+    tools: 'memory__list -> memory__edit',
+  },
+];
+
+export const LIMITATIONS: readonly string[] = [
+  'Notes are plain markdown addressed by path (e.g. work/tasks/foo.md), not by title or ID.',
+  'Search is literal keyword/substring matching - not semantic or vector search; search one distinctive keyword, not a phrase.',
+  'search returns ranked paths + snippets, never full bodies - use read for the whole note.',
+  'list shows the folder tree two levels deep, up to 100 entries per folder - call it again with a subfolder to browse deeper.',
+  'edit shallow-merges top-level frontmatter keys and cannot remove a key; use write to fully replace a note.',
+  'delete is a recoverable soft-delete (kept in history), not a hard wipe.',
+  'One memory per account; connect the same account in each client to share it. Data is stored in the EU and exportable anytime.',
+];
+
+export const CLAUDE_CODE_COMMAND = `claude mcp add --transport http agentage-memory ${MCP_ENDPOINT_URL}`;
+
+// Project-scoped .mcp.json variant (checked into the repo root). Same shape as
+// the generic MCP config; Claude Code accepts `type: http` here.
+export const CLAUDE_CODE_MCP_JSON = `{
+  "mcpServers": {
+    "agentage-memory": {
+      "type": "http",
+      "url": "${MCP_ENDPOINT_URL}"
+    }
+  }
+}`;
+
+export const CLAUDE_CONNECTORS_URL =
+  'https://claude.ai/customize/connectors?modal=add-custom-connector';
+export const CHATGPT_CONNECTORS_URL = 'https://chatgpt.com/#settings/Connectors';
+
+export const VSCODE_MCP_JSON = `{
+  "servers": {
+    "agentage-memory": {
+      "type": "http",
+      "url": "${MCP_ENDPOINT_URL}"
+    }
+  }
+}`;
+
+// Cursor's ~/.cursor/mcp.json - the mcpServers map, url only (no type needed).
+export const CURSOR_MCP_JSON = `{
+  "mcpServers": {
+    "agentage-memory": {
+      "url": "${MCP_ENDPOINT_URL}"
+    }
+  }
+}`;
+
+// One-click "Add to <client>" deeplinks - prefill the server, then the user
+// confirms and signs in (one step shorter than the manual paste).
+export const CLAUDE_ADD_URL = `https://claude.ai/customize/connectors?modal=add-custom-connector&connectorName=${encodeURIComponent(
+  'Agentage Memory'
+)}&connectorUrl=${encodeURIComponent(MCP_ENDPOINT_URL)}`;
+
+export const VSCODE_ADD_URL = `vscode:mcp/install?${encodeURIComponent(
+  JSON.stringify({ name: 'agentage-memory', type: 'http', url: MCP_ENDPOINT_URL })
+)}`;
+
+// Cursor encodes the server config as base64 JSON in its deeplink.
+const CURSOR_CONFIG_B64 =
+  typeof Buffer !== 'undefined'
+    ? Buffer.from(JSON.stringify({ url: MCP_ENDPOINT_URL })).toString('base64')
+    : btoa(JSON.stringify({ url: MCP_ENDPOINT_URL }));
+export const CURSOR_ADD_URL = `cursor://anysphere.cursor-deeplink/mcp/install?name=agentage-memory&config=${CURSOR_CONFIG_B64}`;
+
+export const CLIENT_GUIDES: ReadonlyArray<{
+  client: string;
+  steps: readonly string[];
+}> = [
+  {
+    client: 'Claude Code',
+    steps: [
+      `Run \`${CLAUDE_CODE_COMMAND}\``,
+      'Run `/mcp` and complete the OAuth sign-in.',
+      'A connector you add in Claude.ai also syncs here automatically.',
+    ],
+  },
+  {
+    client: 'Claude (claude.ai & Desktop)',
+    steps: [
+      `One-click: [Add to Claude](${CLAUDE_ADD_URL}) - opens with the server prefilled; review, confirm, and sign in.`,
+      `Or manually: Settings > Connectors > Add custom connector, paste \`${MCP_ENDPOINT_URL}\`.`,
+    ],
+  },
+  {
+    client: 'VS Code',
+    steps: [
+      `One-click: [Install in VS Code](${VSCODE_ADD_URL}).`,
+      'Or add the server to `.vscode/mcp.json` (or run the `MCP: Add Server` command):',
+      `\`\`\`json\n${VSCODE_MCP_JSON}\n\`\`\``,
+      'VS Code opens the browser for the OAuth sign-in on first use.',
+    ],
+  },
+  {
+    client: 'Cursor',
+    steps: [
+      `One-click: [Add to Cursor](${CURSOR_ADD_URL}), then sign in when prompted.`,
+      'Or add the server to `~/.cursor/mcp.json`:',
+      `\`\`\`json\n${CURSOR_MCP_JSON}\n\`\`\``,
+    ],
+  },
+  {
+    client: 'ChatGPT',
+    steps: [
+      `Open [Settings > Apps & Connectors](${CHATGPT_CONNECTORS_URL}) > Advanced settings > enable Developer Mode > Create (paid plans, not Free; ChatGPT has no one-click link, so add it by hand).`,
+      `Paste \`${MCP_ENDPOINT_URL}\` and sign in when prompted.`,
+    ],
+  },
+];
+
+// `docsBase` is the docs origin (docs.<fqdn> in prod, <site>/docs locally).
+export function getDocsMarkdown(docsBase: string): string {
+  const guides = CLIENT_GUIDES.map(({ client, steps }) => {
+    // Indent continuation lines (e.g. fenced code blocks) so they stay inside
+    // the numbered list item.
+    const list = steps.map((s, i) => `${i + 1}. ${s.split('\n').join('\n   ')}`).join('\n');
+    return `### ${client}\n\n${list}`;
+  }).join('\n\n');
+
+  const tools = MCP_TOOLS.map(([name, desc]) => `- \`${name}\`: ${desc}`).join('\n');
+
+  const examples = EXAMPLE_PROMPTS.map(
+    ({ prompt, outcome, tools: t }) => `- "${prompt}"\n  - Outcome: ${outcome} (\`${t}\`)`
+  ).join('\n');
+
+  const limitations = LIMITATIONS.map((l) => `- ${l}`).join('\n');
+
+  const restEndpoints = REST_LIVE_ENDPOINTS.map(([sig, desc]) => `- \`${sig}\`: ${desc}`).join(
+    '\n'
+  );
+
+  return `# Agentage Memory - Docs
+
+${DOCS_INTRO}
+
+## Connect
+
+- MCP endpoint: \`${MCP_ENDPOINT_URL}\` (Streamable HTTP)
+- Auth: ${MCP_AUTH_NOTE}
+
+${guides}
+
+## MCP tools
+
+Once connected, every client gets six memory operations:
+
+${tools}
+
+## Example prompts
+
+${examples}
+
+${TOOL_SCOPE_NOTE}
+
+## REST API
+
+An HTTP surface at \`${REST_API_BASE_URL}\`, reads and writes over \`/v1/memories\`. Auth: ${REST_AUTH_NOTE} Rate limited to ${REST_RATE_LIMIT_PER_MIN} requests per minute per IP.
+
+${restEndpoints}
+
+${REST_VAULTS_ALIAS_NOTE}
+
+Full reference: ${docUrl(docsBase, 'rest-api')}
+
+## Limitations
+
+${limitations}
+
+HTML version: ${docUrl(docsBase, '')}
+`;
+}
