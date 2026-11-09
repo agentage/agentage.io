@@ -87,6 +87,7 @@
   },
   "dependencies": {
     "@agentage/extension": "^0.10.0",
+    "express": "^5.1.0",
     "zod": "^4.2.0"
   },
   "devDependencies": {
