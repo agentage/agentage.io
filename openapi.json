@@ -72,23 +72,149 @@
     }
   },
   "paths": {
-    "/api/v1/echo": {
+    "/api/v1/subscribers": {
+      "post": {
+        "summary": "Subscribe an address",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string"
+                  },
+                  "tools": {
+                    "maxItems": 20,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 64
+                    }
+                  },
+                  "referrer": {
+                    "type": "string",
+                    "maxLength": 2048
+                  },
+                  "utm": {
+                    "type": "object",
+                    "properties": {
+                      "source": {
+                        "type": "string",
+                        "maxLength": 255
+                      },
+                      "medium": {
+                        "type": "string",
+                        "maxLength": 255
+                      },
+                      "campaign": {
+                        "type": "string",
+                        "maxLength": 255
+                      },
+                      "term": {
+                        "type": "string",
+                        "maxLength": 255
+                      },
+                      "content": {
+                        "type": "string",
+                        "maxLength": 255
+                      }
+                    }
+                  },
+                  "locale": {
+                    "type": "string",
+                    "maxLength": 35
+                  },
+                  "timezone": {
+                    "type": "string",
+                    "maxLength": 64
+                  },
+                  "page": {
+                    "type": "string",
+                    "maxLength": 2048
+                  }
+                },
+                "required": ["email"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "the envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "type": "string"
+                        },
+                        "createdAt": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["id", "email", "createdAt"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["success", "data"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION_ERROR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
       "get": {
-        "summary": "Echo msg",
+        "summary": "List subscribers, newest first",
         "security": [
           {
-            "pat": ["root:read"]
+            "pat": ["root:admin"]
           }
         ],
         "parameters": [
           {
-            "name": "msg",
+            "name": "cursor",
             "in": "query",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "string",
-              "minLength": 1,
-              "maxLength": 200
+              "pattern": "^[A-Za-z0-9_-]{1,256}$"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "description": "page size; a limit above 200 is clamped to 200",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
             }
           }
         ],
@@ -105,17 +231,23 @@
                       "const": true
                     },
                     "data": {
-                      "type": "object",
-                      "properties": {
-                        "msg": {
-                          "type": "string"
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "email": {
+                            "type": "string"
+                          },
+                          "createdAt": {
+                            "type": "string"
+                          }
                         },
-                        "caller": {
-                          "type": "string"
-                        }
-                      },
-                      "required": ["msg", "caller"],
-                      "additionalProperties": false
+                        "required": ["id", "email", "createdAt"],
+                        "additionalProperties": false
+                      }
                     }
                   },
                   "required": ["success", "data"]
@@ -156,10 +288,30 @@
         }
       }
     },
-    "/api/v1/ping": {
-      "get": {
-        "summary": "Answer pong",
+    "/api/v1/subscribers/unsubscribe/{email}/{token}": {
+      "post": {
+        "summary": "Unsubscribe by a signed link",
         "security": [],
+        "parameters": [
+          {
+            "name": "email",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 320
+            }
+          },
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "the envelope",
@@ -174,28 +326,31 @@
                     },
                     "data": {
                       "type": "object",
-                      "properties": {
-                        "msg": {
-                          "type": "string"
-                        },
-                        "pings": {
-                          "anyOf": [
-                            {
-                              "type": "integer",
-                              "minimum": -9007199254740991,
-                              "maximum": 9007199254740991
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
-                        }
-                      },
-                      "required": ["msg", "pings"],
+                      "properties": {},
                       "additionalProperties": false
                     }
                   },
                   "required": ["success", "data"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION_ERROR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }

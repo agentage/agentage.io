@@ -20,6 +20,11 @@ and [`@agentage/widget`](https://www.npmjs.com/package/@agentage/widget).
 | store | `migrations/`        | postgres; the `subscribers` table                                         |
 
 - The apex holds no account route: machines and installations live in `agentage/extension-platform`.
+- api: `POST /api/v1/subscribers` (anonymous, idempotent by email, welcome mail on a new row),
+  `POST /api/v1/subscribers/unsubscribe/{email}/{token}` (anonymous, HMAC-SHA256 token, secret
+  `unsubscribe`), `GET /api/v1/subscribers` (`root:admin`); `/.well-known/agentage.json` and
+  `/.well-known/mcp-registry-auth` (setting `mcpRegistryAuth`, 404 while empty).
+- Secrets `resend` and `unsubscribe`: `resend` set to `off` sends no mail (the kit refuses an empty secret).
 
 ## The site (`site/`)
 
