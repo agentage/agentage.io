@@ -35,8 +35,10 @@ const sendWelcome = async (ctx: PartContext, email: string): Promise<void> => {
     body: JSON.stringify(body),
     signal: AbortSignal.timeout(TIMEOUT_MS),
   });
-  if (!res.ok)
-    throw new Error(`resend send failed (${res.status}): ${(await res.text()).slice(0, 200)}`);
+  if (res.ok) return;
+  // Only the error name: Resend's message can repeat the recipient address.
+  const { name } = (await res.json().catch(() => ({}))) as { name?: unknown };
+  throw new Error(`resend send failed (${res.status}): ${String(name ?? 'unknown')}`);
 };
 
 // Fire-and-forget: a mail failure is logged and never fails or delays the signup.

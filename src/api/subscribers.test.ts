@@ -125,13 +125,14 @@ describe('the welcome mail', () => {
     expect(signals[0]).toBeInstanceOf(AbortSignal);
   });
 
-  it("a Resend failure is logged with Resend's answer and never fails the signup", async () => {
-    stubResend(500);
+  it('a Resend failure logs its status and error name, never the address, and never fails the signup', async () => {
+    stubResend(422, '{"name":"validation_error","message":"Invalid `to`: hal@example.com"}');
     const res = await join({ email: 'hal@example.com' });
     await settle();
     expect(res.status).toBe(201);
     const errors = s.ctx.logs.filter((l) => l.level === 'error').map((l) => l.message);
-    expect(errors).toContain('resend send failed (500): {}');
+    expect(errors).toContain('resend send failed (422): validation_error');
+    expect(errors.join()).not.toContain('hal@example.com');
   });
 });
 

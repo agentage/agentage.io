@@ -22,13 +22,13 @@ export const startServers = async (secrets: Record<string, string>) => {
 };
 
 // Resend calls are recorded and answered with status; every other fetch goes out as usual.
-export const stubResend = (status = 200) => {
+export const stubResend = (status = 200, body = '{}') => {
   const real = globalThis.fetch;
   const calls: { url: string; init: RequestInit }[] = [];
   vi.stubGlobal('fetch', (url: string | URL, init: RequestInit = {}) => {
     if (!String(url).startsWith('https://api.resend.com/')) return real(url, init);
     calls.push({ url: String(url), init });
-    return Promise.resolve(new Response('{}', { status }));
+    return Promise.resolve(new Response(body, { status }));
   });
   return calls;
 };
