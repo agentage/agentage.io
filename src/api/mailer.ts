@@ -4,6 +4,7 @@ import { unsubscribeUrls } from './unsubscribe-token.js';
 
 const RESEND = 'https://api.resend.com/emails';
 const SUBJECT = "You're on the AgentAge Memory waitlist";
+const TIMEOUT_MS = 10_000;
 // The web welcome mail as data, read once; npm run build copies both beside this file.
 const [TEXT, HTML] = ['txt', 'html'].map((ext) =>
   readFileSync(new URL(`./welcome-mail.${ext}`, import.meta.url), 'utf8')
@@ -32,8 +33,10 @@ const sendWelcome = async (ctx: PartContext, email: string): Promise<void> => {
     method: 'POST',
     headers: { Authorization: `Bearer ${resend}`, 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
+    signal: AbortSignal.timeout(TIMEOUT_MS),
   });
-  if (!res.ok) throw new Error(`resend send failed (${res.status})`);
+  if (!res.ok)
+    throw new Error(`resend send failed (${res.status}): ${(await res.text()).slice(0, 200)}`);
 };
 
 // Fire-and-forget: a mail failure is logged and never fails or delays the signup.

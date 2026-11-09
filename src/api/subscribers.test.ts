@@ -106,20 +106,25 @@ describe('the welcome mail', () => {
     expect(body['text']).toContain('https://next.example.test/unsubscribe?email=gil%40example.com');
   });
 
-  it('a Resend call that never answers does not hold the signup', async () => {
-    vi.stubGlobal('fetch', (url: string | URL, init?: RequestInit) =>
-      String(url).startsWith('https://api.resend.com/') ? new Promise(() => {}) : real(url, init)
-    );
+  it('a Resend call that never answers does not hold the signup and is cut by a timeout', async () => {
+    const signals: (AbortSignal | null | undefined)[] = [];
+    vi.stubGlobal('fetch', (url: string | URL, init?: RequestInit) => {
+      if (!String(url).startsWith('https://api.resend.com/')) return real(url, init);
+      signals.push(init?.signal);
+      return new Promise(() => {});
+    });
     const res = await join({ email: 'hang@example.com' });
     expect(res.status).toBe(201);
+    expect(signals[0]).toBeInstanceOf(AbortSignal);
   });
 
-  it('a Resend failure is logged and never fails the signup', async () => {
+  it("a Resend failure is logged with Resend's answer and never fails the signup", async () => {
     stubResend(500);
     const res = await join({ email: 'hal@example.com' });
     await settle();
     expect(res.status).toBe(201);
-    expect(s.ctx.logs.some((l) => l.level === 'error')).toBe(true);
+    const errors = s.ctx.logs.filter((l) => l.level === 'error').map((l) => l.message);
+    expect(errors).toContain('resend send failed (500): {}');
   });
 });
 
