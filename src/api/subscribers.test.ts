@@ -64,6 +64,13 @@ describe('POST /api/v1/subscribers', () => {
     expect(await rows()).toEqual([]);
   });
 
+  it('refuses a stored address that is not trimmed and lower-cased, as the cutover import would write', async () => {
+    const insert = s.ctx.store.query(
+      `insert into subscribers (email) values ('Mixed@Example.com')`
+    );
+    await expect(insert).rejects.toThrow(/subscribers_email_lower/);
+  });
+
   it('is idempotent by email: a repeat answers the first row and keeps its context', async () => {
     stubResend();
     const first = await (await join({ email: 'eve@example.com', locale: 'en' })).json();
