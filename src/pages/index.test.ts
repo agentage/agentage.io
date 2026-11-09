@@ -54,6 +54,7 @@ describe('the pages site', () => {
 
   it('drops the docs: they stay on landing (F15)', () => {
     expect(Object.keys(site).filter((path) => /^\/docs/.test(path))).toEqual([]);
+    expect(pages(site).filter((html) => html.includes('href="/docs'))).toEqual([]);
   });
 
   it('keeps no host token in any text entry', () => {

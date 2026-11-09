@@ -25,8 +25,7 @@ const joinRoute = (ctx: ApiContext, limit: Limit) => {
     const email = EmailSchema.safeParse(input.email);
     if (!email.success) throw fail('VALIDATION_ERROR', 'Invalid body', BAD_EMAIL);
     const join = { ...input, email: email.data, referrer: input.referrer ?? header('referer') };
-    const client = { ip, userAgent: header('user-agent') ?? null };
-    const { subscriber, created } = await joinSubscriber(ctx.store, join, client);
+    const { subscriber, created } = await joinSubscriber(ctx.store, join, ip, header('user-agent'));
     if (created) welcome(ctx, subscriber.email);
     return reply(subscriber, { status: created ? 201 : 200 });
   });

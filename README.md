@@ -10,6 +10,12 @@ npm ci && npm run verify                   # type-check, lint, format, tests, si
 npx agentage extension check               # PASS root <version> conforms
 ```
 
+## Run locally
+
+1. `mkdir -p .agentage && cp secrets.example.json .agentage/secrets.json` (`resend` off sends no mail)
+2. `npx agentage extension up`
+3. Open http://localhost:4280
+
 ## The one page
 
 [CLAUDE.md](CLAUDE.md): the parts, the site export, the loop on a laptop, release, the estate row.

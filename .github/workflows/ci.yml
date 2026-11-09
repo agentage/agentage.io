@@ -42,10 +42,9 @@ jobs:
     runs-on: ubuntu-latest
     # The gate on local stays under 10 minutes; slower is a regression.
     timeout-minutes: 10
-    # up mounts each declared secret; resend off sends no mail, the gate signs unsubscribe links with this value.
+    # The README run-locally steps; the gate signs unsubscribe links with the example value.
     env:
-      AGENTAGE_SECRET_RESEND: 'off'
-      AGENTAGE_SECRET_UNSUBSCRIBE: 'local-unsubscribe-secret'
+      AGENTAGE_SECRET_UNSUBSCRIBE: 'local-dev-only'
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -79,7 +78,7 @@ jobs:
 
       # The cli and its kit come from this lockfile: a cli or kit patch needs a commit here.
       - name: agentage extension up (the release recipes, store, dev issuer, gateway)
-        run: node_modules/.bin/agentage extension up
+        run: mkdir -p .agentage && cp secrets.example.json .agentage/secrets.json && node_modules/.bin/agentage extension up
 
       - name: The widget a11y test through the local gateway (src/**/*.spec.ts)
         run: npm run test:e2e

@@ -1,17 +1,7 @@
 import { type Store } from '@agentage/extension';
 import { type Join, type Subscriber } from './subscriber.schema.js';
 
-interface Row extends Record<string, unknown> {
-  id: string;
-  email: string;
-  created_at: Date | string;
-  created?: boolean;
-}
-
-export interface Client {
-  ip: string | null;
-  userAgent: string | null;
-}
+type Row = { id: string; email: string; created_at: Date | string; created?: boolean };
 
 const COLUMNS = 'id, email, created_at';
 const toSubscriber = (row: Row): Subscriber => ({
@@ -26,11 +16,15 @@ const JOIN = `insert into subscribers (email, referrer, utm, locale, timezone, p
   on conflict (email) do update set email = excluded.email
   returning ${COLUMNS}, (xmax = 0) as created`;
 
-export const joinSubscriber = async (store: Store, join: Join, client: Client) => {
+export const joinSubscriber = async (store: Store, join: Join, ip: string, agent?: string) => {
   const { email, referrer, utm, locale, timezone, page } = join;
-  const context = [referrer, utm ? JSON.stringify(utm) : null, locale, timezone, page];
-  const params = [email, ...context.map((v) => v ?? null), client.ip, client.userAgent];
-  const [row] = (await store.query<Row>(JOIN, params)).rows as [Row];
+  const values = [email, referrer, utm && JSON.stringify(utm), locale, timezone, page, ip, agent];
+  const [row] = (
+    await store.query<Row>(
+      JOIN,
+      values.map((v) => v ?? null)
+    )
+  ).rows as [Row];
   return { subscriber: toSubscriber(row), created: row.created === true };
 };
 
