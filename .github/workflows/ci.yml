@@ -93,12 +93,12 @@ jobs:
           ROOT_TOKEN="$(cd .. && node_modules/.bin/agentage extension token --scope root:admin)"
           env "$var=$GITHUB_WORKSPACE" ROOT_TOKEN="$ROOT_TOKEN" npm run e2e -- root gate local
 
-      # A gate that skipped itself is not green.
+      # A gate that skipped itself or its p0 is not green: 67 ran on 2026-11-09, 42 without p0.
       - name: Assert the gate was not vacuous
         if: github.actor != 'dependabot[bot]' && github.event.pull_request.head.repo.fork != true
         working-directory: e2e-suite
         env:
-          MIN_EXECUTED: '30'
+          MIN_EXECUTED: '68'
         run: node scripts/assert-executed.mjs
 
       - name: Logs on failure
