@@ -62,6 +62,13 @@ describe('the pages site', () => {
     expect(texts.filter((entry) => /site-fqdn\.sentinel\.invalid/i.test(entry))).toEqual([]);
   });
 
+  it('links the apex to the deployment origin in the page, its .md and llms-full.txt', () => {
+    const link = `[Agentage Memory](${ORIGIN})`;
+    expect(text('/llms-full.txt')).toContain(link);
+    expect(text('/blog/agentage-galaxy-3d-graph.md')).toContain(link);
+    expect(text('/blog/agentage-galaxy-3d-graph')).toContain(`href="${ORIGIN}">Agentage Memory`);
+  });
+
   it('types the images without an extension and keeps their bytes', () => {
     const og = site['/opengraph-image'] as { type: string; body: Uint8Array };
     expect(og.type).toBe('image/png');

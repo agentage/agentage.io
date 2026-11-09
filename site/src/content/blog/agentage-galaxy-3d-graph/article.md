@@ -61,7 +61,7 @@ renders with WebGL.
 
 ## Part of Agentage Memory
 
-Agentage Galaxy shows you one vault. **[Agentage Memory](https://agentage.io)** is the layer
+Agentage Galaxy shows you one vault. **[Agentage Memory](https://site-fqdn.sentinel.invalid)** is the layer
 underneath the idea: one set of plain-Markdown notes that every AI you use - Claude, ChatGPT,
 VS Code - can read and write over MCP, mirrored locally as files you own.
 
