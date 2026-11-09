@@ -20,4 +20,4 @@ waive:
   - id: seo-canonical
     reason: 'the only page without a canonical is /unsubscribe, which is noindex'
   - id: fe-source
-    reason: "site/ keeps the design-system @source of landing byte-for-byte so the CSS matches agentage.io until the cutover (parity); fix in landing and here together"
+    reason: 'site/ keeps the design-system @source of landing byte-for-byte so the CSS matches agentage.io until the cutover (parity); fix in landing and here together'
