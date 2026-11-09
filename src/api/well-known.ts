@@ -2,7 +2,7 @@ import { type ApiContext } from '@agentage/extension';
 
 const setting = (ctx: ApiContext, key: string) => String(ctx.settings[key] ?? '').trim();
 
-// C1: issuer and telemetry from the platform, the rest from the settings row; anonymous, CORS * (kit).
+// C1: issuer and telemetry from the platform (telemetry falls back to its setting), the rest from settings.
 export const discovery = (ctx: ApiContext) => {
   const { issuer, telemetry } = ctx.platform;
   return {
@@ -10,7 +10,7 @@ export const discovery = (ctx: ApiContext) => {
     platform: setting(ctx, 'platform'),
     markets: [setting(ctx, 'market')],
     cloud: setting(ctx, 'cloud'),
-    ...(telemetry && { telemetry }),
+    telemetry: telemetry || setting(ctx, 'telemetry'),
   };
 };
 

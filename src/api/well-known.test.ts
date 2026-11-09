@@ -38,9 +38,10 @@ describe('/.well-known/agentage.json (C1)', () => {
     });
   });
 
-  it('leaves telemetry out when the platform has none', async () => {
-    const { body } = await serve({ settings, platform }, '/.well-known/agentage.json');
-    expect(Object.keys(JSON.parse(body) as object)).not.toContain('telemetry');
+  it('takes telemetry from its setting when the platform names none', async () => {
+    const options = { settings: { ...settings, telemetry: 'https://logs.example.test' }, platform };
+    const { body } = await serve(options, '/.well-known/agentage.json');
+    expect(JSON.parse(body)).toMatchObject({ telemetry: 'https://logs.example.test' });
   });
 });
 

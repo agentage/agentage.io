@@ -51,6 +51,11 @@
         "type": "string",
         "default": "AgentAge Memory <no-reply@mail.agentage.io>",
         "description": "The From of the subscriber welcome mail"
+      },
+      "telemetry": {
+        "type": "string",
+        "default": "https://logs.agentage.io",
+        "description": "The telemetry origin of agentage.json when the platform names none"
       }
     },
     "secrets": [
