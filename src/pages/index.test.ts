@@ -67,6 +67,7 @@ describe('the pages site', () => {
     expect(text('/llms-full.txt')).toContain(link);
     expect(text('/blog/agentage-galaxy-3d-graph.md')).toContain(link);
     expect(text('/blog/agentage-galaxy-3d-graph')).toContain(`href="${ORIGIN}">Agentage Memory`);
+    expect(text('/llms-full.txt', prod)).toContain('[Agentage Memory](https://agentage.io)');
   });
 
   it('types the images without an extension and keeps their bytes', () => {
