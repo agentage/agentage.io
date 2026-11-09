@@ -10,6 +10,7 @@ beforeAll(async () => {
 afterAll(() => s.close());
 afterEach(async () => {
   vi.unstubAllGlobals();
+  vi.restoreAllMocks();
   await s.ctx.store.query('delete from subscribers');
 });
 
@@ -115,6 +116,7 @@ describe('the welcome mail', () => {
 
   it('a Resend call that never answers does not hold the signup and is cut by a timeout', async () => {
     const signals: (AbortSignal | null | undefined)[] = [];
+    const timeout = vi.spyOn(AbortSignal, 'timeout');
     vi.stubGlobal('fetch', (url: string | URL, init?: RequestInit) => {
       if (!String(url).startsWith('https://api.resend.com/')) return real(url, init);
       signals.push(init?.signal);
@@ -122,7 +124,8 @@ describe('the welcome mail', () => {
     });
     const res = await join({ email: 'hang@example.com' });
     expect(res.status).toBe(201);
-    expect(signals[0]).toBeInstanceOf(AbortSignal);
+    expect(timeout).toHaveBeenCalledWith(10_000);
+    expect(signals[0]).toBe(timeout.mock.results.at(-1)?.value);
   });
 
   it('a Resend failure logs its status and error name, never the address, and never fails the signup', async () => {
