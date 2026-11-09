@@ -26,7 +26,7 @@ const pages = (from: typeof site) =>
 
 describe('the pages site', () => {
   it('maps every exported file to one path', () => {
-    expect(Object.keys(site)).toHaveLength(files.filter((e) => e.isFile()).length);
+    expect(Object.keys(site)).toHaveLength(files.filter((e) => e.isFile()).length + 2);
     expect(Object.keys(site)).toEqual(expect.arrayContaining(['/', '/blog', '/unsubscribe']));
   });
 
@@ -52,9 +52,13 @@ describe('the pages site', () => {
     ).toBe(false);
   });
 
-  it('drops the docs: they stay on landing (F15)', () => {
-    expect(Object.keys(site).filter((path) => /^\/docs/.test(path))).toEqual([]);
-    expect(pages(site).filter((html) => html.includes('href="/docs'))).toEqual([]);
+  it('drops the docs: /docs and below redirect to the docs host (F15)', () => {
+    const to = { redirect: 'https://docs.next.example.test/' };
+    expect(Object.entries(site).filter(([path]) => /^\/docs/.test(path))).toEqual([
+      ['/docs', to],
+      ['/docs/*', to],
+    ]);
+    expect(prod['/docs/*']).toEqual({ redirect: 'https://docs.agentage.io/' });
   });
 
   it('keeps no host token in any text entry', () => {

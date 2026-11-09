@@ -46,7 +46,7 @@ The browser opens for sign-in on first use.
 
 **ChatGPT** - open [Settings > Connectors](https://chatgpt.com/#settings/Connectors) > Add custom connector on paid plans (enable Developer mode under Advanced if you do not see it), paste the endpoint, sign in.
 
-Anything else that speaks MCP over Streamable HTTP can point at the same URL. If your tool can speak MCP, it can speak to your memory. There is nothing of ours to install. Full per-client steps are on the [docs page](https://docs.site-fqdn.sentinel.invalid).
+Anything else that speaks MCP over Streamable HTTP can point at the same URL. If your tool can speak MCP, it can speak to your memory. There is nothing of ours to install. Full per-client steps are on the [docs page](/docs).
 
 ## What happens on first use
 
