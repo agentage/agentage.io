@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { API_URL } from '../../lib/site';
 
 type Status = 'idle' | 'working' | 'done' | 'error';
 
@@ -26,7 +25,7 @@ export function UnsubscribeForm() {
     setStatus('working');
     try {
       const res = await fetch(
-        `${API_URL}/waitlist/unsubscribe?email=${encodeURIComponent(email)}&token=${encodeURIComponent(token)}`,
+        `/api/v1/subscribers/unsubscribe?email=${encodeURIComponent(email)}&token=${encodeURIComponent(token)}`,
         { method: 'POST' }
       );
       setStatus(res.ok ? 'done' : 'error');

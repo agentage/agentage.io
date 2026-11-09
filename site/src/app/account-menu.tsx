@@ -7,6 +7,7 @@ import {
   SESSION_API,
   SIGN_OUT_API,
   catalogFavoritesUrl,
+  signedOutSession,
   signInHref,
   type SessionResponse,
   type SessionUser,
@@ -37,6 +38,11 @@ export function AccountMenu({ className }: { className?: string }) {
         headers: { accept: 'application/json' },
         cache: 'no-store',
       });
+      if (res.status === 404) {
+        const data = await signedOutSession(fetch);
+        if (data) setState({ status: 'ready', data });
+        return;
+      }
       // 503/non-ok = transient: keep the loading slot, never flash signed-out.
       if (!res.ok) return;
       setState({ status: 'ready', data: (await res.json()) as SessionResponse });

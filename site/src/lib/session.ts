@@ -3,6 +3,7 @@
 // client bundle can import it. Landing has no basePath, so fetch URLs are bare.
 export const SESSION_API = '/api/session';
 export const SIGN_OUT_API = '/api/session/sign-out';
+export const DISCOVERY = '/.well-known/agentage.json';
 
 export interface SessionUser {
   email: string;
@@ -35,4 +36,14 @@ export function catalogFavoritesUrl(hostname: string): string {
     return 'http://localhost:3000/mcp/favorites';
   }
   return `https://catalog.${host}/mcp/favorites`;
+}
+
+// No session route (the root static export answers 404): signed out, signing in at the discovery issuer.
+export async function signedOutSession(get: typeof fetch): Promise<SessionResponse | null> {
+  const res = await get(DISCOVERY, { headers: { accept: 'application/json' } });
+  if (!res.ok) return null;
+  const { issuer } = (await res.json()) as { issuer?: unknown };
+  return typeof issuer === 'string' && issuer
+    ? { user: null, signInUrl: `${issuer}/sign-in` }
+    : null;
 }

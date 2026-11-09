@@ -4,6 +4,8 @@ import type { NextConfig } from 'next';
 const nextConfig: NextConfig = {
   output: 'export',
   images: { unoptimized: true },
+  // Built from site/ (scripts/export-site.mjs sets the cwd); the repo root lockfile is the extension's.
+  turbopack: { root: process.cwd() },
 };
 
 export default nextConfig;

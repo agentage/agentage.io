@@ -1,7 +1,6 @@
 'use client';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { trackEvent } from './analytics';
-import { API_URL } from '../lib/site';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -79,10 +78,8 @@ export function NewsletterForm({
 
     setStatus('pending');
     try {
-      // Hits the email-list endpoint on the API host (api.<fqdn>/api, cross-origin;
-      // backend CORS trusts the apex). Reuses /waitlist - the product launched, so this
-      // list is now product news + new-connector updates rather than a launch waitlist.
-      const res = await fetch(`${API_URL}/waitlist`, {
+      // Same origin: the root extension's api part answers /api/v1/subscribers.
+      const res = await fetch('/api/v1/subscribers', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ email, list: 'news', ...context() }),

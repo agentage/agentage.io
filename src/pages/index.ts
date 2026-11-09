@@ -1,5 +1,8 @@
-import { versionPage, type PagesContext } from '@agentage/extension';
+import { siteFromDir, type PagesContext } from '@agentage/extension';
 
-export function create(ctx: PagesContext) {
-  return { '/': versionPage(ctx) };
-}
+// The static export of site/ (npm run build); the kit swaps the host token for this origin (C6).
+export const create = (ctx: PagesContext) =>
+  siteFromDir('dist/pages/site', {
+    origin: ctx.extension.origin,
+    types: { '/opengraph-image': 'image/png', '/twitter-image': 'image/png' },
+  });
