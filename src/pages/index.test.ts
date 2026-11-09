@@ -1,19 +1,28 @@
-import { readdirSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { createTestContext } from '@agentage/extension';
 import { describe, expect, it } from 'vitest';
 import { create } from './index.js';
 
+const siteOn = (origin: string) =>
+  create({ ...createTestContext(), extension: { ...createTestContext().extension, origin } });
 const ORIGIN = 'https://next.example.test';
-const site = create({
-  ...createTestContext(),
-  extension: { ...createTestContext().extension, origin: ORIGIN },
-});
-const text = (path: string) => {
-  const entry = site[path];
+const site = siteOn(ORIGIN);
+const prod = siteOn('https://agentage.io');
+const text = (path: string, from = site) => {
+  const entry = from[path];
   expect(typeof entry).toBe('string');
   return entry as string;
 };
 const files = readdirSync('dist/pages/site', { recursive: true, withFileTypes: true });
+const exported = (file: string) =>
+  readFileSync(`dist/pages/site/${file}`, 'utf8').replace(
+    /site-fqdn\.sentinel\.invalid/gi,
+    'agentage.io'
+  );
+const pages = (from: typeof site) =>
+  Object.values(from).filter(
+    (e): e is string => typeof e === 'string' && e.startsWith('<!DOCTYPE')
+  );
 
 describe('the pages site', () => {
   it('maps every exported file to one path', () => {
@@ -21,10 +30,30 @@ describe('the pages site', () => {
     expect(Object.keys(site)).toEqual(expect.arrayContaining(['/', '/blog', '/unsubscribe']));
   });
 
-  it('serves robots.txt, the sitemap and the canonical on the origin', () => {
-    expect(text('/robots.txt')).toContain(`Sitemap: ${ORIGIN}/sitemap.xml`);
+  it('serves the sitemap and the canonical on the origin', () => {
     expect(text('/sitemap.xml')).toContain(`<loc>${ORIGIN}/blog</loc>`);
     expect(text('/')).toContain(`<link rel="canonical" href="${ORIGIN}"`);
+  });
+
+  it('closes a host other than agentage.io to crawlers: robots Disallow, every page noindex', () => {
+    expect(text('/robots.txt')).toBe('User-agent: *\nDisallow: /\n');
+    expect(pages(site).length).toBeGreaterThan(10);
+    expect(
+      pages(site).every((html) => html.includes('<meta name="robots" content="noindex"/>'))
+    ).toBe(true);
+  });
+
+  it('keeps robots, the sitemap and the pages of agentage.io byte for byte', () => {
+    expect(text('/robots.txt', prod)).toBe(exported('robots.txt'));
+    expect(text('/sitemap.xml', prod)).toBe(exported('sitemap.xml'));
+    expect(text('/', prod)).toBe(exported('index.html'));
+    expect(
+      pages(prod).some((html) => html.includes('<head><meta name="robots" content="noindex"/>'))
+    ).toBe(false);
+  });
+
+  it('drops the docs: they stay on landing (F15)', () => {
+    expect(Object.keys(site).filter((path) => /^\/docs/.test(path))).toEqual([]);
   });
 
   it('keeps no host token in any text entry', () => {
@@ -57,7 +86,7 @@ describe('the pages site', () => {
 
 // The site's own file: a variable specifier keeps its DOM types out of this tsconfig.
 const SESSION = '../../site/src/lib/session.ts';
-type Session = { user: null; signInUrl: string } | null;
+type Session = { user: null; signInUrl: string };
 const { signedOutSession } = (await import(SESSION)) as {
   signedOutSession: (get: typeof fetch) => Promise<Session>;
 };
@@ -74,9 +103,13 @@ describe('the account menu without a session route', () => {
   });
 
   it.each([
-    ['the discovery is missing', 404, {}],
-    ['it names no issuer', 200, {}],
-  ])('keeps the slot empty when %s', async (_name, status, body) => {
-    expect(await signedOutSession(answering(status, body) as typeof fetch)).toBeNull();
+    ['the discovery is missing', answering(404, {})],
+    ['it names no issuer', answering(200, {})],
+    ['the fetch fails', async () => Promise.reject(new Error('offline'))],
+  ])('still reads signed out when %s', async (_name, get) => {
+    expect(await signedOutSession(get as typeof fetch)).toEqual({
+      user: null,
+      signInUrl: 'https://auth.agentage.io/sign-in',
+    });
   });
 });

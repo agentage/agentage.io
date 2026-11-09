@@ -38,12 +38,14 @@ export function catalogFavoritesUrl(hostname: string): string {
   return `https://catalog.${host}/mcp/favorites`;
 }
 
+// The platform issuer when discovery cannot be read.
+const FALLBACK_ISSUER = 'https://auth.agentage.io';
+
 // No session route (the root static export answers 404): signed out, signing in at the discovery issuer.
-export async function signedOutSession(get: typeof fetch): Promise<SessionResponse | null> {
-  const res = await get(DISCOVERY, { headers: { accept: 'application/json' } });
-  if (!res.ok) return null;
-  const { issuer } = (await res.json()) as { issuer?: unknown };
-  return typeof issuer === 'string' && issuer
-    ? { user: null, signInUrl: `${issuer}/sign-in` }
-    : null;
+export async function signedOutSession(get: typeof fetch): Promise<SessionResponse> {
+  const issuer = await get(DISCOVERY, { headers: { accept: 'application/json' } })
+    .then(async (res) => (res.ok ? ((await res.json()) as { issuer?: unknown }).issuer : null))
+    .catch(() => null);
+  const base = typeof issuer === 'string' && issuer ? issuer : FALLBACK_ISSUER;
+  return { user: null, signInUrl: `${base}/sign-in` };
 }

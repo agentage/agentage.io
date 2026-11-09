@@ -1,31 +1,37 @@
+import { readFileSync } from 'node:fs';
 import { type PartContext } from '@agentage/extension';
 import { unsubscribeUrls } from './unsubscribe-token.js';
-import { htmlBody, SUBJECT, textBody } from './welcome-mail.js';
 
 const RESEND = 'https://api.resend.com/emails';
+const SUBJECT = "You're on the AgentAge Memory waitlist";
+// The web welcome mail as data, read once; npm run build copies both beside this file.
+const [TEXT, HTML] = ['txt', 'html'].map((ext) =>
+  readFileSync(new URL(`./welcome-mail.${ext}`, import.meta.url), 'utf8')
+);
+const FOOTER = (url: string) =>
+  `<div style="font-size:11px;color:#B7BBC6;padding-top:8px;"><a href="${url}" style="color:#A6ABB8;text-decoration:underline;">Unsubscribe</a></div>`;
 
-// The kit refuses an empty secret, so "off" is the no-mail value (I4) next to an empty one.
-export const mailOn = (key: string | undefined): key is string => Boolean(key) && key !== 'off';
+const fill = (template = '', site: string, unsubscribe: string) =>
+  template.replaceAll('{{site}}', site).replace('{{unsubscribe}}', unsubscribe);
 
-const payload = (ctx: PartContext, email: string, secret: string | undefined) => {
-  const links = secret ? unsubscribeUrls(ctx.extension.origin, email, secret) : undefined;
+// The kit refuses an empty secret, so resend "off" is the no-mail value (I4).
+export const sendWelcome = async (ctx: PartContext, email: string): Promise<void> => {
+  const { resend, unsubscribe } = ctx.secrets;
+  if (!resend || resend === 'off') return ctx.log.warn('welcome mail skipped: no resend secret');
+  const site = ctx.extension.origin;
+  const links = unsubscribe ? unsubscribeUrls(site, email, unsubscribe) : undefined;
+  const text = fill(TEXT, site, links ? `\n\nUnsubscribe (leave the waitlist): ${links.page}` : '');
+  const html = fill(HTML, site, '').replace('{{footer}}', links ? FOOTER(links.page) : '');
   const headers = links && {
     'List-Unsubscribe': `<${links.oneClick}>`,
     'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
   };
   const from = String(ctx.settings['mailFrom']);
-  const site = ctx.extension.origin;
-  const [text, html] = [textBody(site, links?.page), htmlBody(site, links?.page)];
-  return { from, to: [email], subject: SUBJECT, text, html, ...(headers && { headers }) };
-};
-
-export const sendWelcome = async (ctx: PartContext, email: string): Promise<void> => {
-  const { resend, unsubscribe } = ctx.secrets;
-  if (!mailOn(resend)) return ctx.log.warn('welcome mail skipped: no resend secret');
+  const body = { from, to: [email], subject: SUBJECT, text, html, ...(headers && { headers }) };
   const res = await fetch(RESEND, {
     method: 'POST',
     headers: { Authorization: `Bearer ${resend}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload(ctx, email, unsubscribe)),
+    body: JSON.stringify(body),
   });
   if (!res.ok) throw new Error(`resend send failed (${res.status})`);
 };

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { DOCS_URL } from '../lib/site';
 
 export function Footer() {
   return (
@@ -11,7 +12,7 @@ export function Footer() {
           </p>
           <nav className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
             <Link
-              href="/docs"
+              href={DOCS_URL}
               className="text-sm text-muted-foreground transition-colors duration-200 hover:text-foreground"
             >
               Docs

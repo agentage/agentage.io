@@ -22,8 +22,10 @@ describe('the unsubscribe token', () => {
     );
   });
 
-  it('matches the web scheme: HMAC-SHA256, base64url', () => {
-    expect(signEmail('a@example.com', SECRET)).toMatch(/^[A-Za-z0-9_-]{43}$/);
+  it("equals web's signEmail on a fixed vector, so mailed links keep working", () => {
+    // web packages/backend/src/utils/unsubscribe-token.ts signEmail(' Alice@Example.com ', 'agentage-known-answer')
+    const web = 'CaD61aeQpz-Ly9nIyv8rPgiock93eKrO-r1U8mVYMYU';
+    expect(signEmail(' Alice@Example.com ', 'agentage-known-answer')).toBe(web);
   });
 });
 

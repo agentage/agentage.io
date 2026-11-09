@@ -1,29 +1,29 @@
 import { z } from 'zod';
 
-const text = (max: number) => z.string().trim().max(max);
+// A bad context field is dropped, not refused: the route counts the call before it checks the email.
+const text = (max: number) => z.string().trim().max(max).optional().catch(undefined);
 // Lower-cased and trimmed before the check, so padded or mixed-case input is accepted.
 export const EmailSchema = z.string().trim().toLowerCase().pipe(z.email());
 
-// The live form's body; unknown keys (its list field) are dropped, ip and user agent never trusted from it.
-export const JoinSchema = z.object({
-  email: EmailSchema,
-  tools: z.array(text(64).min(1)).max(20).optional(),
-  referrer: text(2048).optional(),
-  utm: z
-    .object({
-      source: text(255).optional(),
-      medium: text(255).optional(),
-      campaign: text(255).optional(),
-      term: text(255).optional(),
-      content: text(255).optional(),
-    })
-    .optional(),
-  locale: text(35).optional(),
-  timezone: text(64).optional(),
-  page: text(2048).optional(),
+const UtmSchema = z.object({
+  source: text(255),
+  medium: text(255),
+  campaign: text(255),
+  term: text(255),
+  content: text(255),
 });
 
-export type Join = z.output<typeof JoinSchema>;
+// The live form's body; unknown keys (list, tools) are dropped, ip and user agent never trusted from it.
+export const JoinSchema = z.object({
+  email: z.string().max(320).catch(''),
+  referrer: text(2048),
+  utm: UtmSchema.optional().catch(undefined),
+  locale: text(35),
+  timezone: text(64),
+  page: text(2048),
+});
+
+export type Join = Omit<z.output<typeof JoinSchema>, 'email'> & { email: string };
 
 export const SubscriberSchema = z.object({
   id: z.string(),
@@ -33,8 +33,8 @@ export const SubscriberSchema = z.object({
 
 export type Subscriber = z.output<typeof SubscriberSchema>;
 
-// Missing parts read as empty, so they fail the token check as INVALID_UNSUBSCRIBE_LINK, as in web.
+// Anything missing, malformed or oversized reads as empty: INVALID_UNSUBSCRIBE_LINK, as in web.
 export const UnsubscribeQuerySchema = z.object({
-  email: z.string().trim().toLowerCase().max(320).default(''),
-  token: z.string().max(128).default(''),
+  email: z.string().trim().toLowerCase().max(320).catch(''),
+  token: z.string().max(128).catch(''),
 });

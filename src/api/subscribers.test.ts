@@ -3,6 +3,7 @@ import { signEmail } from './unsubscribe-token.js';
 import { fromNewIp, post, SECRET, settle, startServers, stubResend } from './test-servers.js';
 
 let s: Awaited<ReturnType<typeof startServers>>;
+const real = globalThis.fetch;
 beforeAll(async () => {
   s = await startServers({ resend: 're_test_key', unsubscribe: SECRET });
 }, 30_000);
@@ -35,8 +36,8 @@ describe('POST /api/v1/subscribers', () => {
   it("stores the form's context, drops its list field and takes ip and user agent from the request", async () => {
     stubResend();
     const utm = { source: 'twitter', campaign: 'launch' };
-    const context = { tools: ['Claude'], utm, locale: 'en-US', timezone: 'Europe/Prague' };
-    const init = post({ email: 'dana@example.com', list: 'news', ...context });
+    const context = { utm, locale: 'en-US', timezone: 'Europe/Prague' };
+    const init = post({ email: 'dana@example.com', list: 'news', tools: ['Claude'], ...context });
     init.headers = {
       ...init.headers,
       'x-forwarded-for': '203.0.113.7, 10.0.0.1',
@@ -105,6 +106,14 @@ describe('the welcome mail', () => {
     expect(body['text']).toContain('https://next.example.test/unsubscribe?email=gil%40example.com');
   });
 
+  it('a Resend call that never answers does not hold the signup', async () => {
+    vi.stubGlobal('fetch', (url: string | URL, init?: RequestInit) =>
+      String(url).startsWith('https://api.resend.com/') ? new Promise(() => {}) : real(url, init)
+    );
+    const res = await join({ email: 'hang@example.com' });
+    expect(res.status).toBe(201);
+  });
+
   it('a Resend failure is logged and never fails the signup', async () => {
     stubResend(500);
     const res = await join({ email: 'hal@example.com' });
@@ -143,6 +152,16 @@ describe('POST /api/v1/subscribers/unsubscribe?email&token', () => {
     expect(await rows()).toHaveLength(1);
   });
 
+  it.each([
+    ['an oversized email', 'x'.repeat(330) + '@example.com', 'token'],
+    ['an oversized token', 'jo@example.com', 'x'.repeat(200)],
+    ['no email', '', 'token'],
+  ])('answers INVALID_UNSUBSCRIBE_LINK for %s', async (_name, email, token) => {
+    const res = await unsubscribe(email, token);
+    expect(res.status).toBe(400);
+    expect(await res.json()).toMatchObject({ error: { code: 'INVALID_UNSUBSCRIBE_LINK' } });
+  });
+
   it('answers 200 for an address that is not on the list', async () => {
     const res = await unsubscribe('nobody@example.com', signEmail('nobody@example.com', SECRET));
     expect(res.status).toBe(200);
@@ -158,7 +177,13 @@ describe('the per-ip limit', () => {
         ...post({ email: `r${i}@example.com` }),
         headers: { 'content-type': 'application/json', ...ip },
       });
-    for (let i = 0; i < 10; i++) expect((await call(i)).status).toBe(201);
+    for (let i = 0; i < 9; i++) expect((await call(i)).status).toBe(201);
+    // An invalid body counts too: the limit runs before the email check, as in web.
+    const bad = {
+      ...post({ email: 'nope' }),
+      headers: { 'content-type': 'application/json', ...ip },
+    };
+    expect((await s.anon.fetch('/api/v1/subscribers', bad)).status).toBe(400);
     const res = await call(10);
     expect(res.status).toBe(429);
     expect(res.headers.get('retry-after')).toBeTruthy();

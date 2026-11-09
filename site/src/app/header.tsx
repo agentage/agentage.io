@@ -4,7 +4,7 @@ import { useState, useEffect, type ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@agentage/design-system/utils';
-import { GITHUB_URL, DASHBOARD_URL, CATALOG_URL } from '../lib/site';
+import { GITHUB_URL, DASHBOARD_URL, CATALOG_URL, DOCS_URL } from '../lib/site';
 import { AccountMenu } from './account-menu';
 
 // `hard`: render a plain <a> so the browser does a full-page navigation. The
@@ -12,7 +12,7 @@ import { AccountMenu } from './account-menu';
 // soft-navigate within the landing.
 const navLinks: { label: string; href: string; hard?: boolean }[] = [
   { label: 'Home', href: '/' },
-  { label: 'Docs', href: '/docs' },
+  { label: 'Docs', href: DOCS_URL, hard: true },
   { label: 'Blog', href: '/blog' },
   { label: 'Catalog', href: CATALOG_URL, hard: true },
   { label: 'Dashboard', href: DASHBOARD_URL, hard: true },

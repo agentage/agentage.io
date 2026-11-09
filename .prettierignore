@@ -8,3 +8,5 @@ test-results
 playwright-report
 # the landing source, copied as is (counted apart)
 site
+# the welcome mail is data, kept byte for byte
+src/api/welcome-mail.html

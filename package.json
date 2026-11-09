@@ -74,7 +74,7 @@
     "!dist/pages/site"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json && node scripts/export-site.mjs",
+    "build": "tsc -p tsconfig.build.json && cp src/api/welcome-mail.html src/api/welcome-mail.txt dist/api/ && node scripts/export-site.mjs",
     "type-check": "tsc --noEmit -p tsconfig.eslint.json",
     "lint": "eslint .",
     "format": "prettier --write .",
@@ -87,14 +87,12 @@
   },
   "dependencies": {
     "@agentage/extension": "^0.10.0",
-    "express": "^5.1.0",
     "zod": "^4.2.0"
   },
   "devDependencies": {
     "@agentage/cli": "0.50.0",
     "@electric-sql/pglite": "0.5.15",
     "@playwright/test": "1.64.1",
-    "@types/express": "5.0.6",
     "@types/node": "26.6.6",
     "@typescript-eslint/eslint-plugin": "8.72.1",
     "@typescript-eslint/parser": "8.72.1",

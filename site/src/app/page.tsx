@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { DOCS_URL } from '../lib/site';
 import { ConnectBlock } from './connect-block';
 import { NewsletterForm } from './newsletter-form';
 import { problems, steps, features, contrast } from './home-content';
@@ -31,7 +32,7 @@ export default function HomePage() {
                 Connect your AI
               </Link>
               <Link
-                href="/docs"
+                href={DOCS_URL}
                 className="inline-flex h-12 items-center justify-center rounded-lg border border-border px-6 text-sm font-medium text-foreground transition-colors hover:bg-card/50"
               >
                 See the docs
@@ -193,7 +194,7 @@ export default function HomePage() {
               Connect your AI
             </Link>
             <Link
-              href="/docs"
+              href={DOCS_URL}
               className="text-sm text-muted-foreground underline underline-offset-4 transition-colors hover:text-foreground"
             >
               or see the full setup docs →

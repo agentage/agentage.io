@@ -16,7 +16,7 @@ const run = (cmd, args, env = {}) => {
   if (status !== 0) throw new Error(`${cmd} ${args.join(' ')} exited ${status}`);
 };
 
-// blog-md/<slug> -> blog/<slug>.md: the URL the next.config rewrite gave them.
+// blog-md/<slug> -> blog/<slug>.md: the URL the next.config rewrite gave it.
 const mirror = (from, to) => {
   const dir = join(OUT, from);
   if (!existsSync(dir)) return;
@@ -30,7 +30,6 @@ run('npx', ['next', 'build'], { NEXT_PUBLIC_SITE_FQDN: TOKEN, SITE_FQDN: TOKEN }
 rmSync(OUT, { recursive: true, force: true });
 cpSync(join(SITE, 'out'), OUT, { recursive: true });
 mirror('blog-md', 'blog');
-mirror('docs-md', 'docs');
 // The api part serves /.well-known/mcp-registry-auth from the mcpRegistryAuth setting.
 rmSync(join(OUT, 'mcp-registry-auth'), { force: true });
 console.log(`site exported to ${OUT}`);
