@@ -9,3 +9,15 @@ waive:
     reason: 'the extension kit owns the server, logs and /health (sealing); telemetry shipping lands in the kit'
   - id: be-migrations-ci
     reason: 'an extension never migrates from its own repo: the kit migrate job applies migrations/ in the local job (up) and in estate apply before each rollout; unit tests apply them to an in-process postgres'
+  - id: cicd-release-artifact
+    reason: 'release.yml publishes through `agentage extension release` (images, record, npm OIDC), not a literal npm publish command'
+  - id: obs-next-instrumentation
+    reason: 'site/ is a static export served by the root pages part: no Node runtime, so no kit registration'
+  - id: obs-next-health
+    reason: 'site/ is a static export with no server; /health comes from the extension kit that serves it'
+  - id: tst-service-e2e
+    reason: 'site/ is a static export covered by the root playwright suite (src/pages); it has no own e2e dir'
+  - id: seo-canonical
+    reason: 'the only page without a canonical is /unsubscribe, which is noindex'
+  - id: fe-source
+    reason: 'site/ keeps the design-system @source of landing byte-for-byte so the CSS matches agentage.io until the cutover (parity); fix in landing and here together'
