@@ -36,6 +36,9 @@ const PAGE = `select ${COLUMNS} from subscribers
 export const listSubscribers = async (store: Store, cursor: string | null, limit: number) =>
   (await store.query<Row>(PAGE, [cursor, limit + 1])).rows.map(toSubscriber);
 
+export const hasSubscriber = async (store: Store, id: string) =>
+  (await store.query('select 1 from subscribers where id = $1', [id])).rows.length > 0;
+
 export const removeSubscriber = async (store: Store, email: string): Promise<void> => {
   await store.query('delete from subscribers where email = $1', [email]);
 };

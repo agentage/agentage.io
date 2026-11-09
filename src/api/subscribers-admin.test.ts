@@ -71,4 +71,13 @@ describe('GET /api/v1/subscribers', () => {
     const cursor = Buffer.from('nope').toString('base64url');
     expect((await s.admin.fetch(`/api/v1/subscribers?cursor=${cursor}`)).status).toBe(400);
   });
+
+  it('refuses a cursor whose row was removed instead of answering an empty last page', async () => {
+    const first = (await (await s.admin.fetch('/api/v1/subscribers?limit=1')).json()) as Page;
+    await s.ctx.store.query(`delete from subscribers where email = 'new@example.com'`);
+    const cursor = first.meta.pagination.nextCursor ?? '';
+    const res = await s.admin.fetch(`/api/v1/subscribers?cursor=${cursor}`);
+    expect(res.status).toBe(400);
+    expect(await res.json()).toMatchObject({ error: { details: [{ field: 'cursor' }] } });
+  });
 });

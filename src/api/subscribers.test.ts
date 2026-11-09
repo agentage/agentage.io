@@ -64,6 +64,13 @@ describe('POST /api/v1/subscribers', () => {
     expect(await rows()).toEqual([]);
   });
 
+  it('refuses a stored address that is not trimmed and lower-cased, as the cutover import would write', async () => {
+    const insert = s.ctx.store.query(
+      `insert into subscribers (email) values ('Mixed@Example.com')`
+    );
+    await expect(insert).rejects.toThrow(/subscribers_email_lower/);
+  });
+
   it('is idempotent by email: a repeat answers the first row and keeps its context', async () => {
     stubResend();
     const first = await (await join({ email: 'eve@example.com', locale: 'en' })).json();
@@ -106,20 +113,26 @@ describe('the welcome mail', () => {
     expect(body['text']).toContain('https://next.example.test/unsubscribe?email=gil%40example.com');
   });
 
-  it('a Resend call that never answers does not hold the signup', async () => {
-    vi.stubGlobal('fetch', (url: string | URL, init?: RequestInit) =>
-      String(url).startsWith('https://api.resend.com/') ? new Promise(() => {}) : real(url, init)
-    );
+  it('a Resend call that never answers does not hold the signup and is cut by a timeout', async () => {
+    const signals: (AbortSignal | null | undefined)[] = [];
+    vi.stubGlobal('fetch', (url: string | URL, init?: RequestInit) => {
+      if (!String(url).startsWith('https://api.resend.com/')) return real(url, init);
+      signals.push(init?.signal);
+      return new Promise(() => {});
+    });
     const res = await join({ email: 'hang@example.com' });
     expect(res.status).toBe(201);
+    expect(signals[0]).toBeInstanceOf(AbortSignal);
   });
 
-  it('a Resend failure is logged and never fails the signup', async () => {
-    stubResend(500);
+  it('a Resend failure logs its status and error name, never the address, and never fails the signup', async () => {
+    stubResend(422, '{"name":"validation_error","message":"Invalid `to`: hal@example.com"}');
     const res = await join({ email: 'hal@example.com' });
     await settle();
     expect(res.status).toBe(201);
-    expect(s.ctx.logs.some((l) => l.level === 'error')).toBe(true);
+    const errors = s.ctx.logs.filter((l) => l.level === 'error').map((l) => l.message);
+    expect(errors).toContain('resend send failed (422): validation_error');
+    expect(errors.join()).not.toContain('hal@example.com');
   });
 });
 
@@ -187,5 +200,18 @@ describe('the per-ip limit', () => {
     const res = await call(10);
     expect(res.status).toBe(429);
     expect(res.headers.get('retry-after')).toBeTruthy();
+  });
+
+  it('never refuses a valid unsubscribe link, so one-clicks from a shared ip all land', async () => {
+    const ip = { 'x-forwarded-for': '192.0.2.98' };
+    const call = (email: string, token: string) =>
+      s.anon.fetch(`/api/v1/subscribers/unsubscribe?email=${email}&token=${token}`, {
+        method: 'POST',
+        headers: ip,
+      });
+    for (let i = 0; i < 10; i++) expect((await call('bad@example.com', 'x')).status).toBe(400);
+    expect((await call('bad@example.com', 'x')).status).toBe(429);
+    const good = await call('ok@example.com', signEmail('ok@example.com', SECRET));
+    expect(good.status).toBe(200);
   });
 });
