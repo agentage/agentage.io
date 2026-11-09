@@ -15,7 +15,7 @@ const fill = (template = '', site: string, unsubscribe: string) =>
   template.replaceAll('{{site}}', site).replace('{{unsubscribe}}', unsubscribe);
 
 // The kit refuses an empty secret, so resend "off" is the no-mail value (I4).
-export const sendWelcome = async (ctx: PartContext, email: string): Promise<void> => {
+const sendWelcome = async (ctx: PartContext, email: string): Promise<void> => {
   const { resend, unsubscribe } = ctx.secrets;
   if (!resend || resend === 'off') return ctx.log.warn('welcome mail skipped: no resend secret');
   const site = ctx.extension.origin;

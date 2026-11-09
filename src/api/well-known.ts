@@ -3,7 +3,7 @@ import { type ApiContext } from '@agentage/extension';
 const setting = (ctx: ApiContext, key: string) => String(ctx.settings[key] ?? '').trim();
 
 // C1: issuer and telemetry from the platform (telemetry falls back to its setting), the rest from settings.
-export const discovery = (ctx: ApiContext) => {
+const discovery = (ctx: ApiContext) => {
   const { issuer, telemetry } = ctx.platform;
   return {
     issuer,

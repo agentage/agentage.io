@@ -23,7 +23,7 @@ export const JoinSchema = z.object({
   page: text(2048),
 });
 
-export type Join = Omit<z.output<typeof JoinSchema>, 'email'> & { email: string };
+export type Join = z.output<typeof JoinSchema>;
 
 export const SubscriberSchema = z.object({
   id: z.string(),
