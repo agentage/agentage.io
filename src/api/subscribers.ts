@@ -8,7 +8,12 @@ import {
   SubscriberSchema,
   UnsubscribeQuerySchema,
 } from './subscriber.schema.js';
-import { joinSubscriber, listSubscribers, removeSubscriber } from './subscribers.store.js';
+import {
+  hasSubscriber,
+  joinSubscriber,
+  listSubscribers,
+  removeSubscriber,
+} from './subscribers.store.js';
 import { verifyEmail } from './unsubscribe-token.js';
 
 type Limit = ReturnType<typeof createRateLimit>;
@@ -16,6 +21,9 @@ const { cursor } = PageQuerySchema.shape;
 const ListSchema = PageQuerySchema.extend({ cursor: cursor.unwrap().pipe(z.uuid()).optional() });
 const BAD_EMAIL = { details: [{ field: 'email', message: 'Invalid email address' }] };
 const BAD_LINK = { code: 'INVALID_UNSUBSCRIBE_LINK' };
+const GONE_CURSOR = {
+  details: [{ field: 'cursor', message: 'The row is gone, list from the start' }],
+};
 
 const joinRoute = (ctx: ApiContext, limit: Limit) => {
   const spec = { summary: 'Subscribe an address', scope: 'public', input: JoinSchema } as const;
@@ -47,9 +55,12 @@ const unsubscribeRoute = (ctx: ApiContext, limit: Limit) => {
 const listRoute = (ctx: ApiContext) => {
   const spec = { summary: 'List subscribers, newest first', scope: 'admin' } as const;
   const full = { ...spec, input: ListSchema, output: z.array(SubscriberSchema) };
-  ctx.route('get', '/subscribers', full, async ({ input }) => {
-    const rows = await listSubscribers(ctx.store, input.cursor ?? null, input.limit);
-    return pageOf(rows, input.limit);
+  ctx.route('get', '/subscribers', full, async ({ input: { cursor, limit } }) => {
+    const rows = await listSubscribers(ctx.store, cursor ?? null, limit);
+    // An unsubscribed cursor row would read as the last page; refused so no export stops short.
+    if (cursor && !rows.length && !(await hasSubscriber(ctx.store, cursor)))
+      throw fail('VALIDATION_ERROR', 'Invalid query', GONE_CURSOR);
+    return pageOf(rows, limit);
   });
 };
 
