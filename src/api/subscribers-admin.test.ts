@@ -1,5 +1,5 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
-import { post, settle, startServers, stubResend } from './test-servers.js';
+import { fromNewIp, post, settle, startServers, stubResend } from './test-servers.js';
 
 // resend off and no unsubscribe value: what next runs before the owner's Resend key (I4).
 let s: Awaited<ReturnType<typeof startServers>>;
@@ -15,7 +15,7 @@ type Page = { data: { email: string }[]; meta: { pagination: { nextCursor?: stri
 describe('without a Resend key', () => {
   it('stores the row, sends nothing and logs the skip', async () => {
     const calls = stubResend();
-    expect((await join('kim@example.com')).status).toBe(200);
+    expect((await join('kim@example.com')).status).toBe(201);
     await settle();
     expect(calls).toEqual([]);
     expect(s.ctx.logs.some((l) => l.message === 'welcome mail skipped: no resend secret')).toBe(
@@ -24,10 +24,10 @@ describe('without a Resend key', () => {
   });
 
   it('refuses every unsubscribe link while no secret is set', async () => {
-    const res = await s.anon.fetch('/api/v1/subscribers/unsubscribe/kim%40example.com/x', {
-      method: 'POST',
-    });
+    const url = '/api/v1/subscribers/unsubscribe?email=kim%40example.com&token=x';
+    const res = await s.anon.fetch(url, { method: 'POST', headers: fromNewIp() });
     expect(res.status).toBe(400);
+    expect(await res.json()).toMatchObject({ error: { code: 'INVALID_UNSUBSCRIBE_LINK' } });
   });
 });
 

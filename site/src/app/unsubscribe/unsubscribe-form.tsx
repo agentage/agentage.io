@@ -25,7 +25,7 @@ export function UnsubscribeForm() {
     setStatus('working');
     try {
       const res = await fetch(
-        `/api/v1/subscribers/unsubscribe/${encodeURIComponent(email)}/${encodeURIComponent(token)}`,
+        `/api/v1/subscribers/unsubscribe?email=${encodeURIComponent(email)}&token=${encodeURIComponent(token)}`,
         { method: 'POST' }
       );
       setStatus(res.ok ? 'done' : 'error');

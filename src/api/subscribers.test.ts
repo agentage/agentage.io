@@ -1,6 +1,6 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { signEmail } from './unsubscribe-token.js';
-import { post, SECRET, settle, startServers, stubResend } from './test-servers.js';
+import { fromNewIp, post, SECRET, settle, startServers, stubResend } from './test-servers.js';
 
 let s: Awaited<ReturnType<typeof startServers>>;
 beforeAll(async () => {
@@ -17,11 +17,11 @@ const rows = async () =>
   (await s.ctx.store.query('select * from subscribers order by created_at')).rows;
 
 describe('POST /api/v1/subscribers', () => {
-  it('stores a valid email and answers the row', async () => {
+  it('stores a valid email and answers the row with 201', async () => {
     stubResend();
     const res = await join({ email: 'alice@example.com' });
     const { data } = (await res.json()) as { data: { id: string; email: string } };
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(201);
     expect(data).toMatchObject({ email: 'alice@example.com', createdAt: expect.any(String) });
     expect((await rows()).map((r) => r['id'])).toEqual([data.id]);
   });
@@ -32,12 +32,25 @@ describe('POST /api/v1/subscribers', () => {
     expect((await rows())[0]).toMatchObject({ email: 'carol@example.com' });
   });
 
-  it("stores the form's context and drops its list field", async () => {
+  it("stores the form's context, drops its list field and takes ip and user agent from the request", async () => {
     stubResend();
     const utm = { source: 'twitter', campaign: 'launch' };
     const context = { tools: ['Claude'], utm, locale: 'en-US', timezone: 'Europe/Prague' };
-    await join({ email: 'dana@example.com', list: 'news', referrer: 'https://x.test', ...context });
-    expect((await rows())[0]).toMatchObject({ ...context, referrer: 'https://x.test', ip: null });
+    const init = post({ email: 'dana@example.com', list: 'news', ...context });
+    init.headers = {
+      ...init.headers,
+      'x-forwarded-for': '203.0.113.7, 10.0.0.1',
+      'user-agent': 'test-agent/1.0',
+      referer: 'https://x.test',
+    };
+    await s.anon.fetch('/api/v1/subscribers', init);
+    const row = (await rows())[0];
+    expect(row).toMatchObject({
+      ...context,
+      referrer: 'https://x.test',
+      user_agent: 'test-agent/1.0',
+    });
+    expect(row?.['ip']).toBe('203.0.113.7');
   });
 
   it.each([
@@ -53,8 +66,9 @@ describe('POST /api/v1/subscribers', () => {
   it('is idempotent by email: a repeat answers the first row and keeps its context', async () => {
     stubResend();
     const first = await (await join({ email: 'eve@example.com', locale: 'en' })).json();
-    const again = await (await join({ email: 'EVE@example.com', locale: 'de' })).json();
-    expect(again).toEqual(first);
+    const repeat = await join({ email: 'EVE@example.com', locale: 'de' });
+    expect(repeat.status).toBe(200);
+    expect(await repeat.json()).toEqual(first);
     expect(await rows()).toHaveLength(1);
     expect((await rows())[0]).toMatchObject({ locale: 'en' });
   });
@@ -83,9 +97,9 @@ describe('the welcome mail', () => {
     await join({ email: 'gil@example.com' });
     await settle();
     const body = JSON.parse(String(calls[0]?.init.body)) as Record<string, unknown>;
-    const q = `gil%40example.com/${signEmail('gil@example.com', SECRET)}`;
+    const q = `?email=gil%40example.com&token=${signEmail('gil@example.com', SECRET)}`;
     expect(body['headers']).toEqual({
-      'List-Unsubscribe': `<https://next.example.test/api/v1/subscribers/unsubscribe/${q}>`,
+      'List-Unsubscribe': `<https://next.example.test/api/v1/subscribers/unsubscribe${q}>`,
       'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
     });
     expect(body['text']).toContain('https://next.example.test/unsubscribe?email=gil%40example.com');
@@ -95,18 +109,23 @@ describe('the welcome mail', () => {
     stubResend(500);
     const res = await join({ email: 'hal@example.com' });
     await settle();
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(201);
     expect(s.ctx.logs.some((l) => l.level === 'error')).toBe(true);
   });
 });
 
-describe('POST /api/v1/subscribers/unsubscribe/{email}/{token}', () => {
+describe('POST /api/v1/subscribers/unsubscribe?email&token', () => {
   const unsubscribe = (email: string, token: string) =>
-    s.anon.fetch(`/api/v1/subscribers/unsubscribe/${encodeURIComponent(email)}/${token}`, {
-      method: 'POST',
-    });
+    s.anon.fetch(
+      `/api/v1/subscribers/unsubscribe?email=${encodeURIComponent(email)}&token=${token}`,
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/x-www-form-urlencoded', ...fromNewIp() },
+        body: 'List-Unsubscribe=One-Click',
+      }
+    );
 
-  it('removes the row on a valid signed link, anonymously', async () => {
+  it('removes the row on a valid signed link, anonymously, as the RFC 8058 one-click', async () => {
     stubResend();
     await join({ email: 'ivy@example.com' });
     const res = await unsubscribe('Ivy@Example.com', signEmail('ivy@example.com', SECRET));
@@ -120,12 +139,28 @@ describe('POST /api/v1/subscribers/unsubscribe/{email}/{token}', () => {
     const res = await unsubscribe('jo@example.com', 'forged');
     expect(res.status).toBe(400);
     const body = await res.json();
-    expect(body).toMatchObject({ error: { details: [{ message: 'INVALID_UNSUBSCRIBE_LINK' }] } });
+    expect(body).toMatchObject({ error: { code: 'INVALID_UNSUBSCRIBE_LINK' } });
     expect(await rows()).toHaveLength(1);
   });
 
   it('answers 200 for an address that is not on the list', async () => {
     const res = await unsubscribe('nobody@example.com', signEmail('nobody@example.com', SECRET));
     expect(res.status).toBe(200);
+  });
+});
+
+describe('the per-ip limit', () => {
+  it('refuses the 11th call from one address in 15 minutes with 429', async () => {
+    stubResend();
+    const ip = { 'x-forwarded-for': '192.0.2.99' };
+    const call = (i: number) =>
+      s.anon.fetch('/api/v1/subscribers', {
+        ...post({ email: `r${i}@example.com` }),
+        headers: { 'content-type': 'application/json', ...ip },
+      });
+    for (let i = 0; i < 10; i++) expect((await call(i)).status).toBe(201);
+    const res = await call(10);
+    expect(res.status).toBe(429);
+    expect(res.headers.get('retry-after')).toBeTruthy();
   });
 });

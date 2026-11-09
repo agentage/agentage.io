@@ -33,7 +33,7 @@ describe('unsubscribeUrls', () => {
 
   it('puts the one-click POST on the root api', () => {
     expect(urls.oneClick).toBe(
-      `https://next.example.test/api/v1/subscribers/unsubscribe/b%2Bx%40example.com/${token}`
+      `https://next.example.test/api/v1/subscribers/unsubscribe?email=b%2Bx%40example.com&token=${token}`
     );
   });
 

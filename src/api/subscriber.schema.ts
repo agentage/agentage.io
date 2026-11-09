@@ -33,7 +33,8 @@ export const SubscriberSchema = z.object({
 
 export type Subscriber = z.output<typeof SubscriberSchema>;
 
-export const UnsubscribeParamsSchema = z.object({
-  email: z.string().trim().toLowerCase().max(320),
-  token: z.string().max(128),
+// Missing parts read as empty, so they fail the token check as INVALID_UNSUBSCRIBE_LINK, as in web.
+export const UnsubscribeQuerySchema = z.object({
+  email: z.string().trim().toLowerCase().max(320).default(''),
+  token: z.string().max(128).default(''),
 });

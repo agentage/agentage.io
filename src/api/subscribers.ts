@@ -1,35 +1,38 @@
-import { fail, pageOf, PageQuerySchema, type ApiContext } from '@agentage/extension';
+import { fail, pageOf, PageQuerySchema, reply, type ApiContext } from '@agentage/extension';
 import { z } from 'zod';
 import { welcome } from './mailer.js';
-import { JoinSchema, SubscriberSchema, UnsubscribeParamsSchema } from './subscriber.schema.js';
+import { createRateLimit } from './rate-limit.js';
+import { JoinSchema, SubscriberSchema, UnsubscribeQuerySchema } from './subscriber.schema.js';
 import { joinSubscriber, listSubscribers, removeSubscriber } from './subscribers.store.js';
 import { verifyEmail } from './unsubscribe-token.js';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
-const Done = z.object({});
-const INVALID_LINK = [{ field: 'token', message: 'INVALID_UNSUBSCRIBE_LINK' }];
+type Limit = ReturnType<typeof createRateLimit>;
 
-// The kit hands a route no request, so ip and user agent stay null until it does.
-const NO_CLIENT = { ip: null, userAgent: null };
-
-const joinRoute = (ctx: ApiContext) => {
+const joinRoute = (ctx: ApiContext, limit: Limit) => {
   const spec = { summary: 'Subscribe an address', scope: 'public', input: JoinSchema } as const;
-  ctx.route('post', '/subscribers', { ...spec, output: SubscriberSchema }, async ({ input }) => {
-    const { subscriber, created } = await joinSubscriber(ctx.store, input, NO_CLIENT);
+  const full = { ...spec, output: SubscriberSchema, status: 201 } as const;
+  ctx.route('post', '/subscribers', full, async ({ input, ip, header }) => {
+    limit(ip);
+    const join = { ...input, referrer: input.referrer ?? header('referer') };
+    const client = { ip, userAgent: header('user-agent') ?? null };
+    const { subscriber, created } = await joinSubscriber(ctx.store, join, client);
     if (created) welcome(ctx, subscriber.email);
-    return subscriber;
+    return reply(subscriber, { status: created ? 201 : 200 });
   });
 };
 
-const unsubscribeRoute = (ctx: ApiContext) => {
+const unsubscribeRoute = (ctx: ApiContext, limit: Limit) => {
   const spec = { summary: 'Unsubscribe by a signed link', scope: 'public' } as const;
-  const path = '/subscribers/unsubscribe/{email}/{token}';
-  const full = { ...spec, params: UnsubscribeParamsSchema, output: Done };
-  ctx.route('post', path, full, async ({ params: { email, token } }) => {
+  const full = { ...spec, query: UnsubscribeQuerySchema, output: z.object({}) };
+  ctx.route('post', '/subscribers/unsubscribe', full, async ({ query, ip }) => {
+    limit(ip);
     const secret = ctx.secrets.unsubscribe;
-    if (!secret || !verifyEmail(email, token, secret))
-      throw fail('VALIDATION_ERROR', 'Invalid unsubscribe link', { details: INVALID_LINK });
-    await removeSubscriber(ctx.store, email);
+    if (!secret || !query.email || !verifyEmail(query.email, query.token, secret))
+      throw fail('VALIDATION_ERROR', 'Invalid unsubscribe link', {
+        code: 'INVALID_UNSUBSCRIBE_LINK',
+      });
+    await removeSubscriber(ctx.store, query.email);
     return {};
   });
 };
@@ -49,9 +52,10 @@ const listRoute = (ctx: ApiContext) => {
   );
 };
 
-// C8: anonymous join and unsubscribe, the list for root:admin; port of web routes/waitlist.ts.
+// C8: anonymous join and unsubscribe (one per-ip limit, as web), the list for root:admin.
 export const subscriberRoutes = (ctx: ApiContext) => {
-  joinRoute(ctx);
-  unsubscribeRoute(ctx);
+  const limit = createRateLimit();
+  joinRoute(ctx, limit);
+  unsubscribeRoute(ctx, limit);
   listRoute(ctx);
 };

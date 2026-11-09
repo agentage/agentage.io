@@ -59,10 +59,9 @@ describe('/.well-known/mcp-registry-auth', () => {
 });
 
 describe('the apex holds no account route', () => {
-  it('answers 404 on /api/v1/machines to a root:admin token', async () => {
-    const caller = { sub: 'usr_admin', scopes: ['root:admin'] };
+  it('answers 404 on /api/v1/machines, anonymous', async () => {
     const ctx = createTestContext({ store: false, settings });
-    const server = await startTestServer({ create, ctx, caller });
+    const server = await startTestServer({ create, ctx, caller: null });
     expect((await server.fetch('/api/v1/machines')).status).toBe(404);
     await server.close();
   });

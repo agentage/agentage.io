@@ -143,7 +143,7 @@
           }
         },
         "responses": {
-          "200": {
+          "201": {
             "description": "the envelope",
             "content": {
               "application/json": {
@@ -288,25 +288,27 @@
         }
       }
     },
-    "/api/v1/subscribers/unsubscribe/{email}/{token}": {
+    "/api/v1/subscribers/unsubscribe": {
       "post": {
         "summary": "Unsubscribe by a signed link",
         "security": [],
         "parameters": [
           {
             "name": "email",
-            "in": "path",
-            "required": true,
+            "in": "query",
+            "required": false,
             "schema": {
+              "default": "",
               "type": "string",
               "maxLength": 320
             }
           },
           {
             "name": "token",
-            "in": "path",
-            "required": true,
+            "in": "query",
+            "required": false,
             "schema": {
+              "default": "",
               "type": "string",
               "maxLength": 128
             }
@@ -331,26 +333,6 @@
                     }
                   },
                   "required": ["success", "data"]
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "VALIDATION_ERROR",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "NOT_FOUND",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
                 }
               }
             }

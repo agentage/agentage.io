@@ -33,9 +33,13 @@ export const stubResend = (status = 200) => {
   return calls;
 };
 
+// Each call from its own address, so the per-ip limit never meets the suite's own calls.
+let host = 0;
+export const fromNewIp = () => ({ 'x-forwarded-for': `198.51.100.${(host = (host % 250) + 1)}` });
+
 export const post = (body: unknown): RequestInit => ({
   method: 'POST',
-  headers: { 'content-type': 'application/json' },
+  headers: { 'content-type': 'application/json', ...fromNewIp() },
   body: JSON.stringify(body),
 });
 
