@@ -1,7 +1,7 @@
 @import 'tailwindcss';
 @import '@agentage/design-system/theme.css';
 @source "../**/*.{ts,tsx}";
-@source "../../node_modules/@agentage/design-system/src/**/*.{ts,tsx}";
+@source "../../node_modules/@agentage/design-system/dist/**/*.js";
 
 html {
   scroll-behavior: smooth;
