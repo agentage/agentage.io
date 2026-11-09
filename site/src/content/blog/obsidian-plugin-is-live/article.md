@@ -60,7 +60,7 @@ From the dot menu or the command palette, run **Agentage Sync: Sync now**. Your 
 
 ### 4. Connect your AI
 
-The plugin gets your vault into the memory. The point is that every AI reads it. Point Claude, ChatGPT, Cursor, or any MCP client at the same memory over MCP, then ask it what is in your notes - it answers straight from your files. Sync a note from Obsidian, open a fresh Claude or ChatGPT chat, ask what it knows, and it reads the same memory. [See how to connect ->](https://docs.site-fqdn.sentinel.invalid/connect)
+The plugin gets your vault into the memory. The point is that every AI reads it. Point Claude, ChatGPT, Cursor, or any MCP client at the same memory over MCP, then ask it what is in your notes - it answers straight from your files. Sync a note from Obsidian, open a fresh Claude or ChatGPT chat, ask what it knows, and it reads the same memory. [See how to connect ->](/docs/connect)
 
 ![Diagram: your Obsidian vault two-way Git-syncs to a private memory that Claude, ChatGPT, and Cursor read and write over MCP](/blog/obsidian-plugin-is-live/images/flow.png)
 
