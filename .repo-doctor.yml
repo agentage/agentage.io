@@ -16,7 +16,7 @@ waive:
   - id: obs-next-health
     reason: 'site/ is a static export with no server; /health comes from the extension kit that serves it'
   - id: tst-service-e2e
-    reason: 'site/ is a static export covered by the root playwright suite (src/pages); it has no own e2e dir'
+    reason: 'the site and the api are covered by the root suite in agentage/e2e (tests/root, gate and parity), run in CI on local and after each deploy; no e2e dir here'
   - id: seo-canonical
     reason: 'the only page without a canonical is /unsubscribe, which is noindex'
   - id: fe-source
