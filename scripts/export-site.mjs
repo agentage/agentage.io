@@ -1,4 +1,4 @@
-// Exports site/ (Next.js, output: 'export') into dist/pages/site/ with the host token baked (I1, C6).
+// Exports site/ (Next.js, output: 'export') into dist/pages/site/ with the host token baked.
 import { spawnSync } from 'node:child_process';
 import { cpSync, existsSync, mkdirSync, readdirSync, renameSync, rmSync } from 'node:fs';
 import { join } from 'node:path';

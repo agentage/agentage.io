@@ -23,7 +23,7 @@ const serve = async (options: Parameters<typeof createTestContext>[0], path: str
   return { res, body };
 };
 
-describe('/.well-known/agentage.json (C1)', () => {
+describe('/.well-known/agentage.json', () => {
   it('names issuer, platform, markets, cloud and telemetry, anonymous and CORS *', async () => {
     const telemetry = 'https://logs.example.test';
     const options = { settings, platform: { ...platform, telemetry } };

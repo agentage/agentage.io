@@ -14,14 +14,14 @@ const noindex = (site: PagesSite): PagesSite =>
     ['/robots.txt', 'User-agent: *\nDisallow: /\n'],
   ]);
 
-// Docs live on docs.<host> (F15); the apex answers its old /docs paths with a 308 there, as prod.
+// Docs live on docs.<host>; the apex answers its old /docs paths with a 308 there, as prod.
 const docs = (origin: string): PagesSite => {
   const { protocol, host } = new URL(origin);
   const to = { redirect: `${protocol}//docs.${host}/` };
   return { '/docs': to, '/docs/*': to };
 };
 
-// The static export of site/ (npm run build); the kit swaps the host token for this origin (C6).
+// The static export of site/ (npm run build); the kit swaps the host token for this origin.
 export const create = (ctx: PagesContext) => {
   const site = {
     ...siteFromDir('dist/pages/site', {

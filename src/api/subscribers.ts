@@ -66,7 +66,7 @@ const listRoute = (ctx: ApiContext) => {
   });
 };
 
-// C8: anonymous join and unsubscribe (one per-ip limit, as web), the list for root:admin.
+// Anonymous join and unsubscribe (one per-ip limit, as web), the list for root:admin.
 export const subscriberRoutes = (ctx: ApiContext) => {
   const limit = createRateLimit();
   joinRoute(ctx, limit);
