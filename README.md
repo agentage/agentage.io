@@ -20,9 +20,7 @@ npm ci && mkdir -p .agentage && cp secrets.example.json .agentage/secrets.json &
 | `GET /api/v1/subscribers` (list the waitlist, newest first)    | the team            | `root:admin`       |
 | `/.well-known/agentage.json`, `/.well-known/mcp-registry-auth` | clients, registries | none               |
 
-- One limit covers two routes: 10 per 15 min per IP, on joins and on bad unsubscribe links. A valid signed link does not count.
 - The full list of api routes is [openapi.json](openapi.json). It is generated: do not edit it by hand.
-- `/.well-known/mcp-registry-auth` answers 404 until the `mcpRegistryAuth` setting has a value.
 - Account routes (machines, installations) live in
   [agentage/extension-platform](https://github.com/agentage/extension-platform).
 
@@ -40,7 +38,7 @@ You need Node 22, npm 10, Docker and git. Ports 4280 and 4281 must be free: `up`
 
 1. `npm ci`
 2. `mkdir -p .agentage && cp secrets.example.json .agentage/secrets.json`. The `resend` value `off` sends no mail.
-3. `npx agentage extension up`. It builds the images, starts postgres, a dev token issuer (port 4281) and a gateway (port 4280), and waits until every part is healthy.
+3. `npx agentage extension up`.
 4. Open http://localhost:4280 for the site.
 5. Call the api with a token that has the route's scope:
 
@@ -53,8 +51,6 @@ You need Node 22, npm 10, Docker and git. Ports 4280 and 4281 must be free: `up`
 
 6. `npx agentage extension down` removes this working copy's containers, network and volume.
 
-`up` writes `.agentage/` (git ignores it). A part logs JSON lines with an `agcid` for each request: find the container with `docker ps`, then `docker logs <container>`.
-
 ## Prove a change
 
 ```bash
@@ -66,7 +62,7 @@ The first build runs `npm ci` in `site/`. Coverage must stay at 70 percent or mo
 
 ## The site
 
-`site/` is a Next.js app that is exported as static files into `dist/pages/site/` by `scripts/export-site.mjs`. It is copied from [agentage/landing](https://github.com/agentage/landing) and patched for `output: 'export'`. It has its own `package.json` and lockfile. Next is not a dependency of the extension. Lint and format skip `site/`; `next build` type-checks it.
+`site/` is a Next.js app that is exported as static files into `dist/pages/site/` by `scripts/export-site.mjs`. It has its own `package.json` and lockfile. Next is not a dependency of the extension.
 
 ## Release
 
