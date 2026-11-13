@@ -1,134 +1,51 @@
-# CLAUDE.md - the one page
+# CLAUDE.md - agentage.io
 
-Read this page first. It is the only page you need to ship this extension to `next` in one day.
-The deployed proof of the same shape is [agentage/extension-probe](https://github.com/agentage/extension-probe).
-The kit rules are in the READMEs of [`@agentage/extension`](https://www.npmjs.com/package/@agentage/extension)
-and [`@agentage/widget`](https://www.npmjs.com/package/@agentage/widget).
+For an agent that changes this repo. What it is, how to run it and how to release it: [README.md](README.md). The kit rules are in the READMEs of [`@agentage/extension`](https://www.npmjs.com/package/@agentage/extension). A deployed example of the same shape is [agentage/extension-probe](https://github.com/agentage/extension-probe).
 
-## 1. What an extension is
-
-- An extension is one npm package. The `agentage` block of `package.json` is its manifest: the
-  id, the parts, the commands, the settings and the secrets.
-- A part is one folder in `src/`. Each exports `create(ctx)` only; the ui part exports `widgets`.
-- The kit owns the server, `/health`, auth, the store pool, the scheduler and the images. You
-  write only the part code.
+## Where things are
 
 | Part  | Folder               | What it does here                                                         |
 | ----- | -------------------- | ------------------------------------------------------------------------- |
-| pages | `src/pages`, `site/` | the agentage.io site: `site/` is exported static into `dist/pages/site/`  |
+| pages | `src/pages`, `site/` | serves the exported site from `dist/pages/site/`                          |
 | api   | `src/api`            | `/api/v1/subscribers` and the two `/.well-known/` documents, nothing else |
 | store | `migrations/`        | postgres; the `subscribers` table                                         |
 
-- The apex holds no account route: machines and installations live in `agentage/extension-platform`.
-- api: `POST /api/v1/subscribers` (anonymous, idempotent by email, welcome mail on a new row),
-  `POST /api/v1/subscribers/unsubscribe?email&token` (anonymous, HMAC-SHA256 token, secret
-  `unsubscribe`), `GET /api/v1/subscribers` (`root:admin`); `/.well-known/agentage.json` and
-  `/.well-known/mcp-registry-auth` (setting `mcpRegistryAuth`, 404 while empty).
-- Secrets `resend` and `unsubscribe`: `resend` set to `off` sends no mail (the kit refuses an empty secret).
+- This repo has no ui, mcp or worker part and no `*.mcpc.json`. The contract is `openapi.json`.
+- Routes are in `src/api/subscribers.ts` and `src/api/well-known.ts`. The rate limit is in `src/api/rate-limit.ts`.
+- Secrets are `resend` and `unsubscribe`. The kit refuses an empty secret, so `resend` set to `off` sends no mail. The unsubscribe link is an HMAC-SHA256 of the email with the `unsubscribe` secret. A rotated secret invalidates old links.
+- Settings (`platform`, `market`, `cloud`, `mcpRegistryAuth`, `mailFrom`, `telemetry`) are declared in the `agentage` block of `package.json`.
+- Account routes live in agentage/extension-platform, not here.
 
-## The site (`site/`)
+## Rules
 
-- `site/` is the landing source (`packages/landing` at d4b5406 plus `packages/shared/src/origins.ts`
-  as `src/lib/origins.ts`), patched for `output: 'export'`. It has its own `package.json` and lockfile;
-  Next is never a dependency of the extension.
-- `npm run build` runs `scripts/export-site.mjs`: `next build` with the host token
-  `site-fqdn.sentinel.invalid`, then `out/` to `dist/pages/site/`, `blog-md/<slug>` to
-  `blog/<slug>.md` (same for docs), the baked `mcp-registry-auth` dropped. The kit swaps the token
-  for the deployment's host at start.
-- lint and format skip `site/` (copied, counted apart); `next build` type-checks it.
-- Until the cutover (5.1) a content change lands in agentage/landing and here the same day; the
-  parity run shows a miss.
+- A part imports only its own folder and `src/lib/`. `src/manifest.test.ts` refuses a cross-part import.
+- In `src/` never use `listen()`, the `process` global, a token check or an absolute agentage URL. The kit owns them.
+- Declare a route with `ctx.route(method, path, { summary, scope, input, output }, handler)`. The scope is `read`, `write`, `admin` or `public`. The handler returns the data.
+- Add a numbered file in `migrations/` for a schema change. Never edit a migration that ran. Write each one so a second run does nothing.
+- Tests sit beside the code as `src/**/*.test.ts`. Coverage floor: 70 on all four metrics (`vitest.config.ts`). `npm run test:e2e` finds no `*.spec.ts` file here and passes with no tests.
+- After a route change run `npm run build`, `npx agentage extension check --write`, then `npm run format`. `check` compares `openapi.json` with the code.
+- Do not move a `v*` tag. Do not publish from a laptop.
 
-## 2. Start
+## The site
 
-```bash
-agentage extension create <id> [part...]   # no part = all seven
-cd extension-<id> && npm ci && npm run build && agentage extension check
-git init -b master && git add -A && git commit -m "feat: <id> extension"
-```
+- `site/` is copied from agentage/landing and patched for static export. It has its own `package.json` and lockfile. Dependabot covers `/` and `/site`.
+- `npm run build` runs `scripts/export-site.mjs`: `next build` with the host token `site-fqdn.sentinel.invalid`, then `out/` to `dist/pages/site/`, and `blog-md/<slug>` to `blog/<slug>.md`. It drops the baked `mcp-registry-auth`, because the api part serves it. The kit swaps the token for the deployment host at start.
+- A content change goes into agentage/landing and into `site/` on the same day. The parity run in agentage/e2e compares this site with the live agentage.io and shows a miss.
+- Lint and format skip `site/`. `next build` type-checks it.
 
-- The id has lowercase letters, digits and `-`. It starts with a letter. It is not a part name.
-- Keep at least one of pages, ui, api or mcp.
-- `create` deletes the folders and contracts of the parts you do not keep. It writes your id into every file.
-- Push to a new public repo `agentage/extension-<id>`, default branch `master`.
-- Edit to the parts you kept: the table of section 1, the README, `description` in `package.json`
-  and `MIN_EXECUTED` in `ci.yml` (the gate's floor: 25 fits all seven parts).
+## Commands that prove a change
 
-## 3. Write parts
+`npm run verify` runs in this order: type-check, lint, format check, build, tests with coverage. Run it first, then `npx agentage extension check`.
 
-- A part imports only its own folder and `src/lib/`. Each image carries `dist/{part}` and
-  `dist/lib` only. `src/manifest.test.ts` refuses a cross-part import.
-- Put code in `src/lib/` only when every kept part can use it.
-- Never use `listen()`, the `process` global, a token check or an absolute agentage URL in `src/`.
-- Each part has its tests beside it in `src/{part}/`. One part can go without breaking another.
-- Test only the lines you wrote: `check` and the kit's own tests cover the rest.
-- api: declare each route with `route(method, path, { summary, scope?, input?, output? }, handler)`.
-  The scope is `read` (the default), `write`, `admin` or `public` (anonymous). `input` is read
-  from the query on get and delete and from the body otherwise: use `z.coerce` for numbers.
-  The handler returns the data; the kit answers `ok(...)`.
-- mcp: give each tool a `scope` beside its schemas. The kit names it `{id}__{name}`.
-- The api reads `ctx.extension.store`. Without a store, `/ping` does not query.
-- store: add a numbered file in `migrations/`. Never edit a migration that ran.
-- `openapi.json` and `root.mcpc.json` are committed contracts, generated from the routes and
-  tools. `check` compares them to the code. After a change, run `npm run build`,
-  `npx agentage extension check --write`, then `npm run format`.
+CI (`.github/workflows/ci.yml`) runs the same two steps. Its `local` job then runs `up`, `npm run test:e2e` and the gate: `npm run e2e -- root gate local` in agentage/e2e.
 
-## 4. The loop on a laptop
+- The gate needs a `root:admin` token (`ROOT_TOKEN`), because the only token route is the admin list.
+- The gate never retries. A gate that runs fewer checks than `MIN_EXECUTED` is red. The floor is set in `ci.yml` (the step "Assert the gate was not vacuous"). Raise it when the gate grows.
+- The gate needs a `root` row in agentage/e2e `extensions.json`. The id must also be in the auth service's list of extension ids, so a token can carry `root:*` scopes.
 
-You need Node 22+, npm 10+, Docker, `git` and `jq`.
+## After a release
 
-```bash
-npm run verify                                  # type-check, lint, format, tests, build
-npx agentage extension check                    # PASS {id} {version} conforms (6 rules)
-npx agentage extension up                       # ready    N parts healthy    <n> s (each /health body checked)
-npm run test:e2e                                # the widget in a browser, axe WCAG A/AA
-T=$(npx agentage extension token --scope root:read)
-curl -s -H "Authorization: Bearer $T" "localhost:4280/api/v1/echo?msg=hi"
-npx agentage extension down                     # removes this working copy's containers
-```
-
-- `up` runs the release images, postgres with your migrations, a dev issuer (4281) and a gateway
-  (4280) laid out like `next`.
-- `up` writes `.agentage/` (ignored). From cli 0.43, `build` needs a commit.
-- CI runs the same steps, then the e2e gate on local: `npm run e2e -- root gate local` in
-  agentage/e2e. The gate needs your row in its `extensions.json` (section 6). It never retries.
-
-## 5. Release
-
-- Bump the version in `package.json`, run `npx agentage extension check --write`, commit, and
-  push the tag `v{version}` on that commit on master.
-- `release.yml` (`agentage extension release`) then pushes the part images, attaches
-  `agentage-extension.json` to the GitHub release and publishes to npm. The first publish of a
-  new npm name waits for the owner's approval; then add `release.yml` as the trusted publisher
-  on npmjs.com.
-- A re-run only retries npm; a moved tag is refused. A fix is a new version. Never move a `v*` tag.
-- `agentage extension release` refuses the id of the repo this one was copied from, and passes for every other id.
-
-## 6. The estate row
-
-These touches are outside this repo. Each is one small PR or one owner action.
-
-| Where                                 | What                                                                     |
-| ------------------------------------- | ------------------------------------------------------------------------ |
-| agentage/estate `estate.yaml`         | `extensions.{id}: { version, parts: { api: api, ... } }`                 |
-| agentage/e2e `extensions.json`        | `{ "id": "{id}", "token": "GATE_TOKENS", "targets": ["local", "next"] }` |
-| the `GATE_TOKENS` secret (owner)      | a `"{id}"` entry: the bearer your gate sends on `next`                   |
-| agentage/auth `pat-scopes.ts` (owner) | the id in `EXTENSION_IDS`: echo declares `{id}:read`, so it is needed    |
-
-- Pools: `web` for pages and ui, `api` for api, mcp and worker, `data` for store. Host: `{id}.next.agentage.io`.
-
-## 7. Operate
-
-- A merge to estate master deploys `next`. The deploy applies the stacks, checks each part's
-  `/health`, then runs your gate: `npm run e2e -- {id} gate next`.
-- Read a red run on the Actions tab of agentage/estate. The run names the part and the check.
-  A part logs JSON lines with the request's `agcid`: search for it.
-- To change what runs, release a new version and change the version in the estate row.
-
-## 8. What the platform promises
-
-- The kit checks the token and the declared scope before your route or tool runs.
-- The gateway serves `/`, `/ui/{version}/`, `/api/v1/` and `/mcp`. It drops the `Cookie` header.
-- The estate runs the migrations as a job before the rollout. A release never restarts the store.
-- The same smoke and contract gate runs for every extension in the e2e registry.
+- A merge to the estate (agentage/estate) master deploys `next`. The deploy applies the stacks, checks each part's `/health`, then runs `npm run e2e -- root gate next`.
+- The `version` field of the `root` row in `estate.yaml` sets which release runs. To change what runs, release a new version and change that field.
+- Read a red deploy on the Actions tab of agentage/estate. It names the part and the check. Search the part's logs for the request's `agcid`.
 - A kit minor reaches this repo through the Friday Dependabot group PR. Merge it when CI is green.
