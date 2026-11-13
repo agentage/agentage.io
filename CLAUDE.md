@@ -4,13 +4,15 @@ For an agent that changes this repo. What it is, how to run it and how to releas
 
 ## Where facts live
 
-- Routes, scopes, status codes, body limits: `openapi.json` (generated; never edit by hand), summary in `README.md` "What it serves".
-- Run it locally, ports, tokens: `README.md` "Run it locally".
+- Route table and scopes: `README.md` "What it serves"; status codes and body limits: `openapi.json` (generated; never edit by hand).
+- Rate limit, `mcp-registry-auth` 404: `docs/develop.md` "Routes"; code `src/api/rate-limit.ts`, `src/api/well-known.ts`.
+- Run it locally, ports, tokens: `README.md` "Run it locally"; what `up` starts, logs: `docs/develop.md` "Run it locally".
+- Site export, `site/` origin, lint skip: `docs/develop.md` "The site"; code `scripts/export-site.mjs`.
+- Words gate and next: `docs/develop.md` "Words".
+- Release rules and refusals: `README.md` "Release"; code `.github/workflows/release.yml`.
 - Database tables and migration rules: `migrations/`, rules in the Rules section below.
 - Settings and secrets: the `agentage` block of `package.json`; seed values in `secrets.example.json`.
-- How the site is exported: `README.md` "The site", `scripts/export-site.mjs`.
 - CI jobs and the gate floor (`MIN_EXECUTED`): `.github/workflows/ci.yml`. Test coverage floor: `vitest.config.ts`.
-- Release rules and refusals: `README.md` "Release", `.github/workflows/release.yml`.
 
 Read the file named here before you read `src/`.
 
