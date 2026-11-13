@@ -4,11 +4,11 @@ For an agent that changes this repo. What it is, how to run it and how to releas
 
 ## Where facts live
 
-- Routes, scopes, status codes, body limits: `openapi.json` (generated; never edit by hand), summary in `README.md` "What it serves".
-- Run it locally, ports, tokens: `README.md` "Run it locally".
+- Routes, scopes, status codes, body limits: `openapi.json` (generated; never edit by hand), summary in `README.md` "What it serves", limits in `docs/develop.md` "Routes".
+- Run it locally, ports, tokens: `README.md` "Run it locally"; what `up` starts and logs: `docs/develop.md`.
 - Database tables and migration rules: `migrations/`, rules in the Rules section below.
 - Settings and secrets: the `agentage` block of `package.json`; seed values in `secrets.example.json`.
-- How the site is exported: `README.md` "The site", `scripts/export-site.mjs`.
+- How the site is exported: `README.md` "The site", `docs/develop.md` "The site", `scripts/export-site.mjs`.
 - CI jobs and the gate floor (`MIN_EXECUTED`): `.github/workflows/ci.yml`. Test coverage floor: `vitest.config.ts`.
 - Release rules and refusals: `README.md` "Release", `.github/workflows/release.yml`.
 
