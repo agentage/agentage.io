@@ -12,14 +12,15 @@ npm ci && mkdir -p .agentage && cp secrets.example.json .agentage/secrets.json &
 
 ## What it serves
 
-| Route                                                          | Who calls it        | Scope                       |
-| -------------------------------------------------------------- | ------------------- | --------------------------- |
-| `/` and every site page                                        | visitors            | none                        |
-| `POST /api/v1/subscribers` (join the waitlist)                 | the site form       | none (10 per 15 min per IP) |
-| `POST /api/v1/subscribers/unsubscribe?email&token`             | the link in a mail  | none (signed link)          |
-| `GET /api/v1/subscribers` (list the waitlist, newest first)    | the team            | `root:admin`                |
-| `/.well-known/agentage.json`, `/.well-known/mcp-registry-auth` | clients, registries | none                        |
+| Route                                                          | Who calls it        | Scope              |
+| -------------------------------------------------------------- | ------------------- | ------------------ |
+| `/` and every site page                                        | visitors            | none               |
+| `POST /api/v1/subscribers` (join the waitlist)                 | the site form       | none               |
+| `POST /api/v1/subscribers/unsubscribe?email&token`             | the link in a mail  | none (signed link) |
+| `GET /api/v1/subscribers` (list the waitlist, newest first)    | the team            | `root:admin`       |
+| `/.well-known/agentage.json`, `/.well-known/mcp-registry-auth` | clients, registries | none               |
 
+- One limit covers two routes: 10 per 15 min per IP, on joins and on bad unsubscribe links. A valid signed link does not count.
 - The full list of api routes is [openapi.json](openapi.json). It is generated: do not edit it by hand.
 - `/.well-known/mcp-registry-auth` answers 404 until the `mcpRegistryAuth` setting has a value.
 - Account routes (machines, installations) live in
@@ -28,7 +29,7 @@ npm ci && mkdir -p .agentage && cp secrets.example.json .agentage/secrets.json &
 ## Words used here
 
 - **Extension**: one npm package with a manifest in the `agentage` block of `package.json`.
-- **Part**: one folder of `src/` that agentage runs as its own container (here `pages`, `api`, and `store` for the migrations).
+- **Part**: one unit that agentage runs as its own container. `pages` and `api` are folders of `src/`; `store` is the `migrations/` folder (postgres).
 - **Kit**: the library `@agentage/extension`. It owns the server, `/health`, auth and logs.
 - **Gate**: the end-to-end suite in agentage/e2e (a private repo) that runs against a running copy.
 - **next**: the staging environment at `next.agentage.io`.
