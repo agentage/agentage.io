@@ -2,6 +2,18 @@
 
 For an agent that changes this repo. What it is, how to run it and how to release it: [README.md](README.md). The kit rules are in the READMEs of [`@agentage/extension`](https://www.npmjs.com/package/@agentage/extension). A deployed example of the same shape is [agentage/extension-probe](https://github.com/agentage/extension-probe).
 
+## Where facts live
+
+- Routes, scopes, status codes, body limits: `openapi.json` (generated; never edit by hand), summary in `README.md` "What it serves".
+- Run it locally, ports, tokens: `README.md` "Run it locally".
+- Database tables and migration rules: `migrations/`, rules in the Rules section below.
+- Settings and secrets: the `agentage` block of `package.json`; seed values in `secrets.example.json`.
+- How the site is exported: `README.md` "The site", `scripts/export-site.mjs`.
+- CI jobs and the gate floor (`MIN_EXECUTED`): `.github/workflows/ci.yml`. Test coverage floor: `vitest.config.ts`.
+- Release rules and refusals: `README.md` "Release", `.github/workflows/release.yml`.
+
+Read the file named here before you read `src/`.
+
 ## Where things are
 
 | Part  | Folder               | What it does here                                                         |
@@ -31,7 +43,6 @@ For an agent that changes this repo. What it is, how to run it and how to releas
 - `site/` is copied from agentage/landing and patched for static export. It has its own `package.json` and lockfile. Dependabot covers `/` and `/site`.
 - `npm run build` runs `scripts/export-site.mjs`: `next build` with the host token `site-fqdn.sentinel.invalid`, then `out/` to `dist/pages/site/`, and `blog-md/<slug>` to `blog/<slug>.md`. It drops the baked `mcp-registry-auth`, because the api part serves it. The kit swaps the token for the deployment host at start.
 - A content change goes into agentage/landing and into `site/` on the same day. The parity run in agentage/e2e compares this site with the live agentage.io and shows a miss.
-- Lint and format skip `site/`. `next build` type-checks it.
 
 ## Commands that prove a change
 
