@@ -52,7 +52,7 @@ describe('the pages site', () => {
     ).toBe(false);
   });
 
-  it('drops the docs: /docs and below redirect to the docs host (F15)', () => {
+  it('drops the docs: /docs and below redirect to the docs host', () => {
     const to = { redirect: 'https://docs.next.example.test/' };
     expect(Object.entries(site).filter(([path]) => /^\/docs/.test(path))).toEqual([
       ['/docs', to],

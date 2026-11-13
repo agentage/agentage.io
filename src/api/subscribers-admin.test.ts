@@ -1,7 +1,7 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { fromNewIp, post, settle, startServers, stubResend } from './test-servers.js';
 
-// resend off and no unsubscribe value: what next runs before the owner's Resend key (I4).
+// resend off and no unsubscribe value: what next runs before the owner's Resend key.
 let s: Awaited<ReturnType<typeof startServers>>;
 beforeAll(async () => {
   s = await startServers({ resend: 'off', unsubscribe: '' });
