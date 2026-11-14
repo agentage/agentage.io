@@ -1,6 +1,6 @@
 # agentage.io
 
-The public site of agentage. Visitors join the waitlist here. AI clients and MCP registries read its discovery documents: `/.well-known/agentage.json` lists the service addresses, and `/.well-known/mcp-registry-auth` holds the proof an MCP registry asks for. Its extension id is `root`, and its npm package is `@agentage/extension-root`.
+The public site of agentage. Visitors join the waitlist here. Clients and MCP registries read its discovery documents: `/.well-known/agentage.json` lists the service addresses, and `/.well-known/mcp-registry-auth` holds the proof an MCP registry asks for. Its extension id is `root`, and its npm package is `@agentage/extension-root`.
 
 ```bash
 npm ci && mkdir -p .agentage && cp secrets.example.json .agentage/secrets.json && npx agentage extension up
