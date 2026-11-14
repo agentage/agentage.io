@@ -1,6 +1,6 @@
 # agentage.io
 
-The public site of agentage, with its waitlist and discovery documents. Visitors join the waitlist. Clients and MCP registries read the discovery documents. Its extension id is `root`, and its npm package is `@agentage/extension-root`. agentage runs it as three parts: pages, api and store.
+The public site of agentage. Visitors join the waitlist here. AI clients and MCP registries read its discovery documents: `/.well-known/agentage.json` lists the service addresses, and `/.well-known/mcp-registry-auth` holds the proof an MCP registry asks for. Its extension id is `root`, and its npm package is `@agentage/extension-root`.
 
 ```bash
 npm ci && mkdir -p .agentage && cp secrets.example.json .agentage/secrets.json && npx agentage extension up
@@ -25,7 +25,7 @@ More: [Routes](docs/develop.md#routes).
 ## Words used here
 
 - **Extension**: one npm package with a manifest in the `agentage` block of `package.json`.
-- **Part**: one unit agentage runs as its own container: `src/pages`, `src/api` or `migrations/` (the postgres store).
+- **Part**: one unit agentage runs as its own container: `src/pages`, `src/api` or `migrations/` (the postgres store). This extension has three parts: pages, api and store.
 - **Kit**: the library `@agentage/extension`. It owns the server, `/health`, auth and logs.
 
 ## Run it locally
@@ -60,7 +60,7 @@ Coverage must stay at 70 percent or more on all four metrics.
 
 ## The site
 
-`site/` is a Next.js app. `scripts/export-site.mjs` exports it as static files to `dist/pages/site/`. Next is not a dependency of the extension.
+`site/` is a Next.js app. `scripts/export-site.mjs` exports it as static files to `dist/pages/site/`.
 
 More: [The site](docs/develop.md#the-site).
 
