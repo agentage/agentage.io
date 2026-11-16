@@ -50,7 +50,7 @@ Read the file named here before you read `src/`.
 
 `npm run verify` runs in this order: type-check, lint, format check, build, tests with coverage. Run it first, then `npx agentage extension check`.
 
-CI (`.github/workflows/ci.yml`) runs the same two steps. Its `local` job then runs `up`, `npm run test:e2e` and the gate: `npm run e2e -- root gate local` in agentage/e2e.
+CI (`.github/workflows/ci.yml`) runs the same two steps. Its `local` job then runs `up`, `npm run test:e2e` and the gate: `npm run e2e -- root gate docker` in agentage/e2e.
 
 - The gate needs a `root:admin` token (`ROOT_TOKEN`), because the only token route is the admin list.
 - The gate never retries. A gate that runs fewer checks than `MIN_EXECUTED` is red. The floor is set in `ci.yml` (the step "Assert the gate was not vacuous"). Raise it when the gate grows.
