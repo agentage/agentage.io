@@ -9,9 +9,7 @@ import { mcpToolsDoc } from './content/mcp-tools';
 import { troubleshootDoc } from './content/troubleshoot';
 
 // Every doc page, keyed by slug. Add a page = import it + add it here; the route
-// and sitemap pick it up automatically (nav is wired in nav.ts). The tools pages
-// (content/{cli,obsidian,vs-code-extension}.ts) stay unregistered while
-// their nav entries are `comingSoon` stubs - re-import them to bring them back.
+// and sitemap pick it up automatically (nav is wired in nav.ts).
 const PAGES: DocPage[] = [
   overviewDoc,
   mcpServerDoc,
