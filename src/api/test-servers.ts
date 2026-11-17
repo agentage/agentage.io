@@ -3,7 +3,7 @@ import { vi } from 'vitest';
 import { create } from './index.js';
 
 export const SECRET = 'test-unsubscribe-secret';
-export const ORIGIN = 'https://next.example.test';
+const ORIGIN = 'https://next.example.test';
 const ADMIN: Caller = { sub: 'usr_admin', scopes: ['root:admin'] };
 const READER: Caller = { sub: 'usr_reader', scopes: ['root:read'] };
 
