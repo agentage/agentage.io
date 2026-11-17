@@ -78,8 +78,8 @@ export function NewsletterForm({
 
     setStatus('pending');
     try {
-      // Same origin: the root extension's api part answers /api/v1/subscribers.
-      const res = await fetch('/api/v1/subscribers', {
+      // Same origin: the root extension's api part answers /api/root/subscribers.
+      const res = await fetch('/api/root/subscribers', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ email, list: 'news', ...context() }),

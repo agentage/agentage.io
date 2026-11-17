@@ -4,6 +4,7 @@ Depth for [README.md](../README.md): routes, the local stack and the site.
 
 ## Routes
 
+- The api part answers at `/api/root/`. Until phase 4 the kit also mounts `/api/v1/`, so links in mail sent before kit 0.18 still unsubscribe.
 - Joins and bad unsubscribe links share one limit: 10 per 15 minutes per IP. A valid signed link does not count.
 - `/.well-known/mcp-registry-auth` answers 404 until the `mcpRegistryAuth` setting has a value.
 

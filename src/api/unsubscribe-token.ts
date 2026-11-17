@@ -15,6 +15,6 @@ export const unsubscribeUrls = (origin: string, email: string, secret: string) =
   const [e, t] = [encodeURIComponent(email), signEmail(email, secret)];
   return {
     page: `${origin}/unsubscribe?email=${e}&token=${t}`,
-    oneClick: `${origin}/api/v1/subscribers/unsubscribe?email=${e}&token=${t}`,
+    oneClick: `${origin}/api/root/subscribers/unsubscribe?email=${e}&token=${t}`,
   };
 };

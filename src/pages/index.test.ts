@@ -91,8 +91,8 @@ describe('the pages site', () => {
   it('posts the forms to the relative subscribers path, never the api host', () => {
     const chunks = Object.entries(site).filter(([path]) => path.endsWith('.js'));
     const js = chunks.map(([, body]) => String(body)).join('\n');
-    expect(js).toContain('/api/v1/subscribers');
-    expect(js).toContain('/api/v1/subscribers/unsubscribe?email=');
+    expect(js).toContain('/api/root/subscribers');
+    expect(js).toContain('/api/root/subscribers/unsubscribe?email=');
     expect(js).not.toMatch(/\/waitlist/);
   });
 });

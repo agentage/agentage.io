@@ -12,9 +12,9 @@ npm ci && mkdir -p .agentage && cp secrets.example.json .agentage/secrets.json &
 | Route                                                          | Who calls it        | Scope              |
 | -------------------------------------------------------------- | ------------------- | ------------------ |
 | `/` and every site page                                        | visitors            | none               |
-| `POST /api/v1/subscribers`                                     | the site form       | none               |
-| `POST /api/v1/subscribers/unsubscribe?email&token`             | the link in a mail  | none (signed link) |
-| `GET /api/v1/subscribers` (the waitlist, newest first)         | the team            | `root:admin`       |
+| `POST /api/root/subscribers`                                   | the site form       | none               |
+| `POST /api/root/subscribers/unsubscribe?email&token`           | the link in a mail  | none (signed link) |
+| `GET /api/root/subscribers` (the waitlist, newest first)       | the team            | `root:admin`       |
 | `/.well-known/agentage.json`, `/.well-known/mcp-registry-auth` | clients, registries | none               |
 
 - All api routes are in [openapi.json](openapi.json). It is generated: never edit it by hand.
@@ -40,7 +40,7 @@ You need Node 22, npm 10, Docker and git. Ports 4280 and 4281 must be free, or `
 
    ```bash
    T=$(npx agentage extension token --scope root:admin)
-   curl -H "Authorization: Bearer $T" localhost:4280/api/v1/subscribers   # 200
+   curl -H "Authorization: Bearer $T" localhost:4280/api/root/subscribers   # 200
    ```
 
    A call without a token returns 401. A token with another scope returns 403.
