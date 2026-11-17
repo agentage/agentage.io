@@ -14,11 +14,11 @@ afterEach(async () => {
   await s.ctx.store.query('delete from subscribers');
 });
 
-const join = (body: unknown) => s.anon.fetch('/api/v1/subscribers', post(body));
+const join = (body: unknown) => s.anon.fetch('/api/root/subscribers', post(body));
 const rows = async () =>
   (await s.ctx.store.query('select * from subscribers order by created_at')).rows;
 
-describe('POST /api/v1/subscribers', () => {
+describe('POST /api/root/subscribers', () => {
   it('stores a valid email and answers the row with 201', async () => {
     stubResend();
     const res = await join({ email: 'alice@example.com' });
@@ -45,7 +45,7 @@ describe('POST /api/v1/subscribers', () => {
       'user-agent': 'test-agent/1.0',
       referer: 'https://x.test',
     };
-    await s.anon.fetch('/api/v1/subscribers', init);
+    await s.anon.fetch('/api/root/subscribers', init);
     const row = (await rows())[0];
     expect(row).toMatchObject({
       ...context,
@@ -108,7 +108,7 @@ describe('the welcome mail', () => {
     const body = JSON.parse(String(calls[0]?.init.body)) as Record<string, unknown>;
     const q = `?email=gil%40example.com&token=${signEmail('gil@example.com', SECRET)}`;
     expect(body['headers']).toEqual({
-      'List-Unsubscribe': `<https://next.example.test/api/v1/subscribers/unsubscribe${q}>`,
+      'List-Unsubscribe': `<https://next.example.test/api/root/subscribers/unsubscribe${q}>`,
       'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
     });
     expect(body['text']).toContain('https://next.example.test/unsubscribe?email=gil%40example.com');
@@ -139,10 +139,10 @@ describe('the welcome mail', () => {
   });
 });
 
-describe('POST /api/v1/subscribers/unsubscribe?email&token', () => {
+describe('POST /api/root/subscribers/unsubscribe?email&token', () => {
   const unsubscribe = (email: string, token: string) =>
     s.anon.fetch(
-      `/api/v1/subscribers/unsubscribe?email=${encodeURIComponent(email)}&token=${token}`,
+      `/api/root/subscribers/unsubscribe?email=${encodeURIComponent(email)}&token=${token}`,
       {
         method: 'POST',
         headers: { 'content-type': 'application/x-www-form-urlencoded', ...fromNewIp() },
@@ -189,7 +189,7 @@ describe('the per-ip limit', () => {
     stubResend();
     const ip = { 'x-forwarded-for': '192.0.2.99' };
     const call = (i: number) =>
-      s.anon.fetch('/api/v1/subscribers', {
+      s.anon.fetch('/api/root/subscribers', {
         ...post({ email: `r${i}@example.com` }),
         headers: { 'content-type': 'application/json', ...ip },
       });
@@ -199,7 +199,7 @@ describe('the per-ip limit', () => {
       ...post({ email: 'nope' }),
       headers: { 'content-type': 'application/json', ...ip },
     };
-    expect((await s.anon.fetch('/api/v1/subscribers', bad)).status).toBe(400);
+    expect((await s.anon.fetch('/api/root/subscribers', bad)).status).toBe(400);
     const res = await call(10);
     expect(res.status).toBe(429);
     expect(res.headers.get('retry-after')).toBeTruthy();
@@ -208,7 +208,7 @@ describe('the per-ip limit', () => {
   it('never refuses a valid unsubscribe link, so one-clicks from a shared ip all land', async () => {
     const ip = { 'x-forwarded-for': '192.0.2.98' };
     const call = (email: string, token: string) =>
-      s.anon.fetch(`/api/v1/subscribers/unsubscribe?email=${email}&token=${token}`, {
+      s.anon.fetch(`/api/root/subscribers/unsubscribe?email=${email}&token=${token}`, {
         method: 'POST',
         headers: ip,
       });

@@ -13,3 +13,4 @@ playwright-report/
 site/.next/
 site/out/
 site/next-env.d.ts
+dist.next/

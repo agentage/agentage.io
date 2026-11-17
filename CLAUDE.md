@@ -18,11 +18,11 @@ Read the file named here before you read `src/`.
 
 ## Where things are
 
-| Part  | Folder               | What it does here                                                         |
-| ----- | -------------------- | ------------------------------------------------------------------------- |
-| pages | `src/pages`, `site/` | serves the exported site from `dist/pages/site/`                          |
-| api   | `src/api`            | `/api/v1/subscribers` and the two `/.well-known/` documents, nothing else |
-| store | `migrations/`        | postgres; the `subscribers` table                                         |
+| Part  | Folder               | What it does here                                                           |
+| ----- | -------------------- | --------------------------------------------------------------------------- |
+| pages | `src/pages`, `site/` | serves the exported site from `dist/pages/site/`                            |
+| api   | `src/api`            | `/api/root/subscribers` and the two `/.well-known/` documents, nothing else |
+| store | `migrations/`        | postgres; the `subscribers` table                                           |
 
 - This repo has no ui, mcp or worker part and no `*.mcpc.json`. The contract is `openapi.json`.
 - Routes are in `src/api/subscribers.ts` and `src/api/well-known.ts`. The rate limit is in `src/api/rate-limit.ts`.

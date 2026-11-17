@@ -3,7 +3,7 @@
 The public site of agentage. Visitors join the waitlist here. Clients and MCP registries read its discovery documents: `/.well-known/agentage.json` lists the service addresses, and `/.well-known/mcp-registry-auth` holds the proof an MCP registry asks for. Its extension id is `root`, and its npm package is `@agentage/extension-root`.
 
 ```bash
-npm ci && mkdir -p .agentage && cp secrets.example.json .agentage/secrets.json && npx agentage extension up
+npm ci && mkdir -p .agentage && cp secrets.example.json .agentage/secrets.json && npx agentage extension up --docker
 # needs Node 22, Docker, git; serves localhost:4280
 ```
 
@@ -12,9 +12,9 @@ npm ci && mkdir -p .agentage && cp secrets.example.json .agentage/secrets.json &
 | Route                                                          | Who calls it        | Scope              |
 | -------------------------------------------------------------- | ------------------- | ------------------ |
 | `/` and every site page                                        | visitors            | none               |
-| `POST /api/v1/subscribers`                                     | the site form       | none               |
-| `POST /api/v1/subscribers/unsubscribe?email&token`             | the link in a mail  | none (signed link) |
-| `GET /api/v1/subscribers` (the waitlist, newest first)         | the team            | `root:admin`       |
+| `POST /api/root/subscribers`                                   | the site form       | none               |
+| `POST /api/root/subscribers/unsubscribe?email&token`           | the link in a mail  | none (signed link) |
+| `GET /api/root/subscribers` (the waitlist, newest first)       | the team            | `root:admin`       |
 | `/.well-known/agentage.json`, `/.well-known/mcp-registry-auth` | clients, registries | none               |
 
 - All api routes are in [openapi.json](openapi.json). It is generated: never edit it by hand.
@@ -34,13 +34,13 @@ You need Node 22, npm 10, Docker and git. Ports 4280 and 4281 must be free, or `
 
 1. `npm ci`
 2. `mkdir -p .agentage && cp secrets.example.json .agentage/secrets.json`. The `resend` value `off` sends no mail.
-3. `npx agentage extension up`. It builds the images and waits until every part is healthy.
+3. `npx agentage extension up --docker`. It builds the images and waits until every part is healthy.
 4. Open http://localhost:4280.
 5. Call the api with a token that has the route's scope:
 
    ```bash
    T=$(npx agentage extension token --scope root:admin)
-   curl -H "Authorization: Bearer $T" localhost:4280/api/v1/subscribers   # 200
+   curl -H "Authorization: Bearer $T" localhost:4280/api/root/subscribers   # 200
    ```
 
    A call without a token returns 401. A token with another scope returns 403.

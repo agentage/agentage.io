@@ -9,7 +9,7 @@ beforeAll(async () => {
 afterAll(() => s.close());
 afterEach(() => vi.unstubAllGlobals());
 
-const join = (email: string) => s.anon.fetch('/api/v1/subscribers', post({ email }));
+const join = (email: string) => s.anon.fetch('/api/root/subscribers', post({ email }));
 type Page = { data: { email: string }[]; meta: { pagination: { nextCursor?: string } } };
 
 describe('without a Resend key', () => {
@@ -24,14 +24,14 @@ describe('without a Resend key', () => {
   });
 
   it('refuses every unsubscribe link while no secret is set', async () => {
-    const url = '/api/v1/subscribers/unsubscribe?email=kim%40example.com&token=x';
+    const url = '/api/root/subscribers/unsubscribe?email=kim%40example.com&token=x';
     const res = await s.anon.fetch(url, { method: 'POST', headers: fromNewIp() });
     expect(res.status).toBe(400);
     expect(await res.json()).toMatchObject({ error: { code: 'INVALID_UNSUBSCRIBE_LINK' } });
   });
 });
 
-describe('GET /api/v1/subscribers', () => {
+describe('GET /api/root/subscribers', () => {
   beforeAll(async () => {
     await s.ctx.store.query('delete from subscribers');
     for (const [i, name] of ['old', 'mid', 'new'].entries())
@@ -45,11 +45,15 @@ describe('GET /api/v1/subscribers', () => {
     ['anonymous', 'anon', 401],
     ['root:read', 'reader', 403],
   ] as const)('refuses %s with %i', async (_name, who, status) => {
-    expect((await s[who].fetch('/api/v1/subscribers')).status).toBe(status);
+    expect((await s[who].fetch('/api/root/subscribers')).status).toBe(status);
+  });
+
+  it('refuses an anonymous HEAD like its GET (kit 0.18.4)', async () => {
+    expect((await s.anon.fetch('/api/root/subscribers', { method: 'HEAD' })).status).toBe(401);
   });
 
   it('lists newest first for root:admin', async () => {
-    const page = (await (await s.admin.fetch('/api/v1/subscribers')).json()) as Page;
+    const page = (await (await s.admin.fetch('/api/root/subscribers')).json()) as Page;
     expect(page.data.map((r) => r.email)).toEqual([
       'new@example.com',
       'mid@example.com',
@@ -58,10 +62,10 @@ describe('GET /api/v1/subscribers', () => {
   });
 
   it('pages with an opaque cursor', async () => {
-    const first = (await (await s.admin.fetch('/api/v1/subscribers?limit=2')).json()) as Page;
+    const first = (await (await s.admin.fetch('/api/root/subscribers?limit=2')).json()) as Page;
     const cursor = first.meta.pagination.nextCursor ?? '';
     const next = (await (
-      await s.admin.fetch(`/api/v1/subscribers?limit=2&cursor=${cursor}`)
+      await s.admin.fetch(`/api/root/subscribers?limit=2&cursor=${cursor}`)
     ).json()) as Page;
     expect(next.data.map((r) => r.email)).toEqual(['old@example.com']);
     expect(next.meta.pagination.nextCursor).toBeUndefined();
@@ -69,14 +73,14 @@ describe('GET /api/v1/subscribers', () => {
 
   it('refuses a cursor that names no row id with 400', async () => {
     const cursor = Buffer.from('nope').toString('base64url');
-    expect((await s.admin.fetch(`/api/v1/subscribers?cursor=${cursor}`)).status).toBe(400);
+    expect((await s.admin.fetch(`/api/root/subscribers?cursor=${cursor}`)).status).toBe(400);
   });
 
   it('refuses a cursor whose row was removed instead of answering an empty last page', async () => {
-    const first = (await (await s.admin.fetch('/api/v1/subscribers?limit=1')).json()) as Page;
+    const first = (await (await s.admin.fetch('/api/root/subscribers?limit=1')).json()) as Page;
     await s.ctx.store.query(`delete from subscribers where email = 'new@example.com'`);
     const cursor = first.meta.pagination.nextCursor ?? '';
-    const res = await s.admin.fetch(`/api/v1/subscribers?cursor=${cursor}`);
+    const res = await s.admin.fetch(`/api/root/subscribers?cursor=${cursor}`);
     expect(res.status).toBe(400);
     expect(await res.json()).toMatchObject({ error: { details: [{ field: 'cursor' }] } });
   });
