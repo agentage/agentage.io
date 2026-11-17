@@ -1,6 +1,6 @@
 # CLAUDE.md - agentage.io
 
-For an agent that changes this repo. What it is, how to run it and how to release it: [README.md](README.md). The kit rules are in the READMEs of [`@agentage/extension`](https://www.npmjs.com/package/@agentage/extension). A deployed example of the same shape is [agentage/extension-probe](https://github.com/agentage/extension-probe).
+For an agent that changes this repo. What it is, how to run it and how to release it: [README.md](README.md). The kit rules are in the READMEs of [`@agentage/extension`](https://www.npmjs.com/package/@agentage/extension). A deployed example of the same shape is [agentage/extension-probe](https://github.com/agentage/extension-probe). The engineering standards load from `~/projects/CLAUDE.md` above this repo; this file links them and does not copy them.
 
 ## Where facts live
 
