@@ -26,7 +26,7 @@ Read the file named here before you read `src/`.
 
 - This repo has no ui, mcp or worker part and no `*.mcpc.json`. The contract is `openapi.json`.
 - Routes are in `src/api/subscribers.ts` and `src/api/well-known.ts`. The rate limit is in `src/api/rate-limit.ts`.
-- Secrets are `resend` and `unsubscribe`. The kit refuses an empty secret, so `resend` set to `off` sends no mail. The unsubscribe link is an HMAC-SHA256 of the email with the `unsubscribe` secret. A rotated secret invalidates old links.
+- Secrets are `resend` and `unsubscribe`, scoped to the api part: the pages part mounts none, so an app host runs `root-pages` with no secret. The kit refuses an empty secret, so `resend` set to `off` sends no mail. The unsubscribe link is an HMAC-SHA256 of the email with the `unsubscribe` secret. A rotated secret invalidates old links.
 - Settings (`platform`, `market`, `cloud`, `mcpRegistryAuth`, `mailFrom`, `telemetry`) are declared in the `agentage` block of `package.json`.
 - Account routes live in agentage/extension-platform, not here.
 
