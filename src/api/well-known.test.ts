@@ -24,9 +24,8 @@ const serve = async (options: Parameters<typeof createTestContext>[0], path: str
 };
 
 describe('/.well-known/agentage.json', () => {
-  it('names issuer, platform, markets, cloud and telemetry, anonymous and CORS *', async () => {
-    const telemetry = 'https://logs.example.test';
-    const options = { settings, platform: { ...platform, telemetry } };
+  it('names issuer, platform, markets and cloud only, anonymous and CORS *', async () => {
+    const options = { settings, platform };
     const { res, body } = await serve(options, '/.well-known/agentage.json');
     expect(res.headers.get('access-control-allow-origin')).toBe('*');
     expect(JSON.parse(body)).toEqual({
@@ -34,7 +33,6 @@ describe('/.well-known/agentage.json', () => {
       platform: 'https://platform.next.example.test',
       markets: ['https://market.next.example.test'],
       cloud: 'https://cloud.next.example.test',
-      telemetry,
     });
   });
 
@@ -48,10 +46,10 @@ describe('/.well-known/agentage.json', () => {
     expect(JSON.parse(body)).toMatchObject({ issuer: 'https://auth.example.test' });
   });
 
-  it('takes telemetry from its setting when the platform names none', async () => {
+  it('serves no telemetry field, even with an old telemetry setting (J.4.2 row 7)', async () => {
     const options = { settings: { ...settings, telemetry: 'https://logs.example.test' }, platform };
     const { body } = await serve(options, '/.well-known/agentage.json');
-    expect(JSON.parse(body)).toMatchObject({ telemetry: 'https://logs.example.test' });
+    expect(JSON.parse(body)).not.toHaveProperty('telemetry');
   });
 });
 
