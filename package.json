@@ -1,6 +1,6 @@
 {
   "name": "@agentage/extension-root",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "agentage.io: the site, the subscribers and the discovery documents, as the root extension",
   "type": "module",
   "license": "MIT",
@@ -59,8 +59,18 @@
       }
     },
     "secrets": [
-      "resend",
-      "unsubscribe"
+      {
+        "name": "resend",
+        "parts": [
+          "api"
+        ]
+      },
+      {
+        "name": "unsubscribe",
+        "parts": [
+          "api"
+        ]
+      }
     ]
   },
   "exports": {
