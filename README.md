@@ -1,6 +1,6 @@
 # agentage.io
 
-The public site of agentage. Visitors join the waitlist here. Clients and MCP registries read its discovery documents: `/.well-known/agentage.json` lists the service addresses, and `/.well-known/mcp-registry-auth` holds the proof an MCP registry asks for. Its extension id is `root`, and its npm package is `@agentage/extension-root`.
+The public site of agentage. Visitors join the waitlist here. Clients and MCP registries read its discovery documents: `/.well-known/agentage.json` lists the service addresses, and `/.well-known/mcp-registry-auth` holds the proof an MCP registry asks for. Its extension id is `root`, and its package `@agentage/extension-root` is private: it is never on npm, the estate runs its images.
 
 ```bash
 npm ci && mkdir -p .agentage && cp secrets.example.json .agentage/secrets.json && npx agentage extension up --docker
@@ -70,7 +70,7 @@ More: [The site](docs/develop.md#the-site).
 2. Run `npx agentage extension check --write` and commit.
 3. Push the tag `v<version>` on that commit on master.
 
-`release.yml` pushes the part images. It attaches `agentage-extension.json` to the GitHub release. It publishes the package to npm. A re-run only retries npm. A moved tag is refused: a fix is a new version.
+`release.yml` pushes the part images. It attaches `agentage-extension.json` to the GitHub release. The package is private, so nothing goes to npm. A moved tag is refused: a fix is a new version.
 
 ## Documentation
 

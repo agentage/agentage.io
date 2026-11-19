@@ -1,6 +1,7 @@
 {
   "name": "@agentage/extension-root",
   "version": "0.1.7",
+  "private": true,
   "description": "agentage.io: the site, the subscribers and the discovery documents, as the root extension",
   "type": "module",
   "license": "MIT",
