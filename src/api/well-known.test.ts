@@ -38,6 +38,16 @@ describe('/.well-known/agentage.json', () => {
     });
   });
 
+  it('takes the issuer from its setting when the platform names none', async () => {
+    const none = { issuer: '', audience: '' };
+    const options = {
+      settings: { ...settings, issuer: 'https://auth.example.test' },
+      platform: none,
+    };
+    const { body } = await serve(options, '/.well-known/agentage.json');
+    expect(JSON.parse(body)).toMatchObject({ issuer: 'https://auth.example.test' });
+  });
+
   it('takes telemetry from its setting when the platform names none', async () => {
     const options = { settings: { ...settings, telemetry: 'https://logs.example.test' }, platform };
     const { body } = await serve(options, '/.well-known/agentage.json');

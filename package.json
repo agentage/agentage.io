@@ -1,6 +1,6 @@
 {
   "name": "@agentage/extension-root",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "agentage.io: the site, the subscribers and the discovery documents, as the root extension",
   "type": "module",
   "license": "MIT",
@@ -51,6 +51,11 @@
         "type": "string",
         "default": "AgentAge Memory <no-reply@mail.agentage.io>",
         "description": "The From of the subscriber welcome mail"
+      },
+      "issuer": {
+        "type": "string",
+        "default": "https://auth.agentage.io",
+        "description": "The issuer of agentage.json when the platform names none"
       },
       "telemetry": {
         "type": "string",
