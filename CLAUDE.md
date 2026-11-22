@@ -38,7 +38,7 @@ Read the file named here before you read `src/`.
 - Add a numbered file in `migrations/` for a schema change. Never edit a migration that ran. Write each one so a second run does nothing.
 - Tests sit beside the code as `src/**/*.test.ts`. Coverage floor: 70 on all four metrics (`vitest.config.ts`). `npm run test:e2e` finds no `*.spec.ts` file here and passes with no tests.
 - After a route change run `npm run build`, `npx agentage extension check --write`, then `npm run format`. `check` compares `openapi.json` with the code.
-- Do not move a `v*` tag. Do not publish from a laptop.
+- Do not move a `root@*` tag. Do not publish or release from a laptop: a merge to master is the release.
 
 ## The site
 

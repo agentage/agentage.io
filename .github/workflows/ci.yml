@@ -104,3 +104,19 @@ jobs:
       - name: Logs on failure
         if: failure() || cancelled()
         run: docker compose -f .agentage/compose.json logs --no-color --tail 80 || true
+
+  # The one required context: green when every job passed or was skipped.
+  ci-required:
+    name: ci-required
+    needs: [verify, local]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Every job passed or was skipped
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: |
+          set -euo pipefail
+          jq -r 'to_entries[] | "\(.key): \(.value.result)"' <<<"$NEEDS"
+          jq -e 'all(.[]; .result == "success" or .result == "skipped")' <<<"$NEEDS" >/dev/null
