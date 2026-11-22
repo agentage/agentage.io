@@ -1,6 +1,6 @@
 # agentage.io
 
-![agentage.io: a blog post in site/src/content/blog, a merge releases root@version, a pull request in the estate raises the version on next](https://github.com/agentage/agentage.io/raw/master/docs/banner.svg)
+![agentage.io: a blog post in site/src/content/blog, a merge releases root@version, a release alone does not change next: a pull request that changes one line installs it](https://github.com/agentage/agentage.io/raw/master/docs/banner.svg)
 
 The public site of agentage. Visitors read the blog and join the waitlist. Clients and MCP registries read its discovery documents. The site runs on the staging estate "next", not yet in production. It is one extension with the id `root`; its package `@agentage/extension-root` is private and never goes to npm.
 
@@ -46,7 +46,7 @@ An api call needs a token: `T=$(npx agentage extension token --scope root:admin)
 
 A merge to master is the release. `release.yml` runs `agentage extension release --changed`. When real content changed since the last `root@*` tag, it makes a date version `YYYY.MDD.N`, the tag `root@<version>`, the part images and the one image, and attaches `agentage-extension.json` and `agentage-container.json` to the GitHub release. Nothing goes to npm. A released version never changes: a fix is a new merge.
 
-A change to a root-level `*.md` file, to `docs/` or to `.github/` releases nothing. A blog post under `site/src/content/` does release. A release installs on next only when a pull request in the estate raises the version of the `root` row.
+A change to a root-level `*.md` file, to `docs/` or to `.github/` releases nothing. A blog post under `site/src/content/` does release. A release alone does not change the live staging site. The staging estate takes the new version by a pull request that changes one line; the site at next.agentage.io then runs it.
 
 ## For agents
 

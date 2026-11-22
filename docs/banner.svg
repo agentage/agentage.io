@@ -27,8 +27,8 @@
   <rect x="148" y="192" width="220" height="5" rx="2.5" fill="#F59E0B"/>
   <text x="148" y="238" font-size="19" fill="#c9d1d9">the public site of <tspan fill="#F59E0B" font-weight="700">agentage</tspan></text>
   <text x="148" y="266" font-size="19" fill="#9aa4b2">one extension, id root, released on merge</text>
-  <text x="148" y="306" font-size="13.5" font-family="JetBrains Mono, Consolas, monospace" fill="#8b949e">npm ci &amp;&amp; npm run verify &amp;&amp; npx agentage extension check</text>
-  <text x="148" y="328" font-size="12.5" fill="#8b949e">Node 22 or newer; no sign-in, no Docker for these three</text>
+  <text x="148" y="306" font-size="13.5" font-family="JetBrains Mono, Consolas, monospace" fill="#8b949e">npm ci &amp;&amp; npm run verify</text>
+  <text x="148" y="328" font-size="12.5" fill="#8b949e">Node 22 or newer; no sign-in, no Docker</text>
   
   <rect x="748" y="150" width="170" height="120" rx="13" fill="#11161f" stroke="#2a3140" stroke-width="1"/>
   <text x="833" y="192" text-anchor="middle" font-size="13" font-weight="700" letter-spacing="1.5" fill="#58a6ff">A POST</text>
@@ -41,11 +41,11 @@
   <rect x="1178" y="150" width="170" height="120" rx="13" fill="#11161f" stroke="#2a3140" stroke-width="1"/>
   <text x="1263" y="192" text-anchor="middle" font-size="13" font-weight="700" letter-spacing="1.5" fill="#b48eff">NEXT</text>
   <text x="1263" y="218" text-anchor="middle" font-size="12.5" fill="#9aa4b2">next.agentage.io</text>
-  <text x="1263" y="242" text-anchor="middle" font-size="12" fill="#8b949e">the staging site</text>
+  <text x="1263" y="242" text-anchor="middle" font-size="12" fill="#8b949e">runs it after a PR</text>
   
   <line x1="918" y1="210" x2="963" y2="210" stroke="#8b949e" stroke-width="1.4" marker-end="url(#arrow)"/>
   <text x="940.5" y="200" text-anchor="middle" font-size="10.5" fill="#8b949e">merge</text>
   <line x1="1133" y1="210" x2="1178" y2="210" stroke="#8b949e" stroke-width="1.4" marker-end="url(#arrow)"/>
   <text x="1155.5" y="200" text-anchor="middle" font-size="10.5" fill="#F59E0B">PR</text>
-  <text x="700" y="392" text-anchor="middle" font-size="13" fill="#8b949e">a blog post is content: merging it releases a new version of the site</text>
+  <text x="700" y="392" text-anchor="middle" font-size="13" fill="#8b949e">a release alone does not change the live staging site: a pull request that changes one line installs it</text>
 </svg>
