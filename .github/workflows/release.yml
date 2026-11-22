@@ -1,11 +1,11 @@
 name: Release
 
-# A v* tag: agentage extension release refuses the starting-point id, a commit off master and a tag that is
-# not the version, keeps a released version, then pushes the images and attaches agentage-extension.json to
-# the release. The package is private: the estate runs the images, nothing goes to npm.
+# A merge is the release: agentage extension release --changed gives the root extension, when the repo
+# differs from its last root@* tag, a date version YYYY.MDD.N, the tag root@<version>, its images and the
+# records on the GitHub release. The package is private: nothing goes to npm.
 on:
   push:
-    tags: ['v*']
+    branches: [master]
 
 concurrency:
   group: release
@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   release:
-    name: Images, record
+    name: Images and record of the root extension
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -34,4 +34,4 @@ jobs:
         run: printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
       - env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: node_modules/.bin/agentage extension release # the lockfile's cli, never a fresh resolve
+        run: npx -y @agentage/cli@0.71.0 extension release --changed # pinned: the merge-release cli

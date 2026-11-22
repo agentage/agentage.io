@@ -66,11 +66,11 @@ More: [The site](docs/develop.md#the-site).
 
 ## Release
 
-1. Raise the version in `package.json`.
-2. Run `npx agentage extension check --write` and commit.
-3. Push the tag `v<version>` on that commit on master.
+A merge to master is the release. `release.yml` runs `agentage extension release --changed`: when the repo differs from the last `root@*` tag, it makes a date version `YYYY.MDD.N`, the tag `root@<version>`, the part images and the one image, and attaches `agentage-extension.json` and `agentage-container.json` to the GitHub release. The package is private, so nothing goes to npm. A released version never changes: a fix is a new merge.
 
-`release.yml` pushes the part images. It attaches `agentage-extension.json` to the GitHub release. The package is private, so nothing goes to npm. A moved tag is refused: a fix is a new version.
+Every merge changes the repo, so every merge releases, a docs-only or CI-only merge too. The root row of `apphosts` has no `track`, so a release installs only when a PR there raises its `version`.
+
+Preview what a merge would release, from a clone whose `origin/master` holds the commit: `GITHUB_REPOSITORY=agentage/agentage.io npx -y @agentage/cli@0.71.0 extension release --changed --dry-run`.
 
 ## Documentation
 
