@@ -1,6 +1,6 @@
 # CLAUDE.md - agentage.io
 
-For an agent that changes this repo. What it is, how to run it and how to release it: [README.md](README.md). The kit rules are in the READMEs of [`@agentage/extension`](https://www.npmjs.com/package/@agentage/extension). A deployed example of the same shape is [agentage/extension-probe](https://github.com/agentage/extension-probe). The engineering standards load from `~/projects/CLAUDE.md` above this repo; this file links them and does not copy them.
+For an agent that changes this repo. What it is, how to run it and how to release it: [README.md](README.md). The kit rules are in the READMEs of [`@agentage/extension`](https://www.npmjs.com/package/@agentage/extension). A deployed example of the same shape is [agentage/examples](https://github.com/agentage/examples). The engineering standards load from `~/projects/CLAUDE.md` above this repo; this file links them and does not copy them.
 
 ## Where facts live
 
@@ -28,7 +28,7 @@ Read the file named here before you read `src/`.
 - Routes are in `src/api/subscribers.ts` and `src/api/well-known.ts`. The rate limit is in `src/api/rate-limit.ts`.
 - Secrets are `resend` and `unsubscribe`, scoped to the api part: the pages part mounts none, so an app host runs `root-pages` with no secret. The kit refuses an empty secret, so `resend` set to `off` sends no mail. The unsubscribe link is an HMAC-SHA256 of the email with the `unsubscribe` secret. A rotated secret invalidates old links.
 - Settings (`platform`, `market`, `cloud`, `mcpRegistryAuth`, `mailFrom`, `issuer`) are declared in the `agentage` block of `package.json`.
-- Account routes live in agentage/extension-platform, not here.
+- Account routes live in the platform extension (agentage/host-core), not here.
 
 ## Rules
 
