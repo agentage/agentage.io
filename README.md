@@ -1,82 +1,69 @@
 # agentage.io
 
-The public site of agentage. Visitors join the waitlist here. Clients and MCP registries read its discovery documents: `/.well-known/agentage.json` lists the service addresses, and `/.well-known/mcp-registry-auth` holds the proof an MCP registry asks for. Its extension id is `root`, and its package `@agentage/extension-root` is private: it is never on npm, the estate runs its images.
+![agentage.io: a blog post in site/src/content/blog, a merge releases root@version, a release alone does not change next: a pull request that changes one line installs it](https://github.com/agentage/agentage.io/raw/master/docs/banner.svg)
+
+The public site of agentage. Visitors read the blog and join the waitlist. Clients and MCP registries read its discovery documents. The site runs on the staging estate "next", not yet in production. It is one extension with the id `root`; its package `@agentage/extension-root` is private and never goes to npm.
+
+## Quick start
+
+You need Node 22 or newer and npm 10 or newer. The checks need no Docker and no sign-in.
 
 ```bash
-npm ci && mkdir -p .agentage && cp secrets.example.json .agentage/secrets.json && npx agentage extension up --docker
-# needs Node 22, Docker, git; serves localhost:4280
+npm ci
+npm run verify                    # type-check, lint, format, build, tests with coverage
+npx agentage extension check      # PASS root <version> conforms (6 rules)
 ```
 
-## What it serves
+## What is in this repo
 
-| Route                                                          | Who calls it        | Scope              |
-| -------------------------------------------------------------- | ------------------- | ------------------ |
-| `/` and every site page                                        | visitors            | none               |
-| `POST /api/root/subscribers`                                   | the site form       | none               |
-| `POST /api/root/subscribers/unsubscribe?email&token`           | the link in a mail  | none (signed link) |
-| `GET /api/root/subscribers` (the waitlist, newest first)       | the team            | `root:admin`       |
-| `/.well-known/agentage.json`, `/.well-known/mcp-registry-auth` | clients, registries | none               |
+| Path                | What                                                                              |
+| ------------------- | --------------------------------------------------------------------------------- |
+| `site/`             | the Next.js site; `scripts/export-site.mjs` exports it to static files            |
+| `site/src/content/` | content as data: blog posts at `blog/<slug>/article.md`                           |
+| `src/api/`          | the api part: `/api/root/subscribers` and two `/.well-known/` documents           |
+| `migrations/`       | the store part: postgres, the `subscribers` table                                 |
+| `openapi.json`      | every api route; generated, never edit by hand                                    |
+| `docs/`             | [docs/develop.md](docs/develop.md): routes, what `up` starts, the site, the words |
 
-- All api routes are in [openapi.json](openapi.json). It is generated: never edit it by hand.
-- Account routes live in [agentage/extension-platform](https://github.com/agentage/extension-platform).
+The three parts are pages (the exported site), api and store.
 
-More: [Routes](docs/develop.md#routes).
+## How content is added
 
-## Words used here
+To add a blog post, create `site/src/content/blog/<slug>/article.md` with the front matter of an existing post. Put its images in `site/public/blog/<slug>/images/`. Quote YAML dates. Open a pull request. A merge publishes the post: it is a change to real content, so it releases a new version of the site.
 
-- **Extension**: one npm package with a manifest in the `agentage` block of `package.json`.
-- **Part**: one unit agentage runs as its own container: `src/pages`, `src/api` or `migrations/` (the postgres store). This extension has three parts: pages, api and store.
-- **Kit**: the library `@agentage/extension`. It owns the server, `/health`, auth and logs.
-
-## Run it locally
-
-You need Node 22, npm 10, Docker and git. Ports 4280 and 4281 must be free, or `up` refuses to start.
-
-1. `npm ci`
-2. `mkdir -p .agentage && cp secrets.example.json .agentage/secrets.json`. The `resend` value `off` sends no mail.
-3. `npx agentage extension up --docker`. It builds the images and waits until every part is healthy.
-4. Open http://localhost:4280.
-5. Call the api with a token that has the route's scope:
-
-   ```bash
-   T=$(npx agentage extension token --scope root:admin)
-   curl -H "Authorization: Bearer $T" localhost:4280/api/root/subscribers   # 200
-   ```
-
-   A call without a token returns 401. A token with another scope returns 403.
-
-6. `npx agentage extension down` removes the containers, network and volume.
-
-More: [Run it locally](docs/develop.md#run-it-locally).
-
-## Prove a change
+## How to work on it
 
 ```bash
-npm run verify                    # type-check, lint, format, build, tests, coverage
-npx agentage extension check      # PASS root <version> conforms
+npm ci
+mkdir -p .agentage && cp secrets.example.json .agentage/secrets.json   # resend "off" sends no mail
+npx agentage extension up --docker    # needs Docker; ports 4280 and 4281 free; serves localhost:4280
+npx agentage extension down           # removes the containers, network and volume
 ```
 
-Coverage must stay at 70 percent or more on all four metrics.
+An api call needs a token: `T=$(npx agentage extension token --scope root:admin)`. Details and routes: [docs/develop.md](docs/develop.md). Coverage must stay at 70 percent or more.
 
-## The site
+## How a change is released
 
-`site/` is a Next.js app. `scripts/export-site.mjs` exports it as static files to `dist/pages/site/`.
+A merge to master is the release. `release.yml` runs `agentage extension release --changed`. When real content changed since the last `root@*` tag, it makes a date version `YYYY.MDD.N`, the tag `root@<version>`, the part images and the one image, and attaches `agentage-extension.json` and `agentage-container.json` to the GitHub release. Nothing goes to npm. A released version never changes: a fix is a new merge.
 
-More: [The site](docs/develop.md#the-site).
+A change to a root-level `*.md` file, to `docs/` or to `.github/` releases nothing. A blog post under `site/src/content/` does release. A release alone does not change the live staging site. The staging estate takes the new version by a pull request that changes one line; the site at next.agentage.io then runs it.
 
-## Release
+## For agents
 
-A merge to master is the release. `release.yml` runs `agentage extension release --changed`: when the repo differs from the last `root@*` tag, it makes a date version `YYYY.MDD.N`, the tag `root@<version>`, the part images and the one image, and attaches `agentage-extension.json` and `agentage-container.json` to the GitHub release. The package is private, so nothing goes to npm. A released version never changes: a fix is a new merge.
+```bash
+npm ci && npm run verify && npx agentage extension check
+```
 
-Every merge changes the repo, so every merge releases, a docs-only or CI-only merge too. The root row of `apphosts` has no `track`, so a release installs only when a PR there raises its `version`.
+- Required CI check: `ci-required`. The rules and the traps are in [CLAUDE.md](CLAUDE.md) (`AGENTS.md` links to it).
+- Never tag, publish or release by hand. Never edit `openapi.json` by hand: run `npx agentage extension check --write`.
+- Run `extension up` only when you accept that it starts containers on ports 4280 and 4281.
 
-Preview what a merge would release, from a clone whose `origin/master` holds the commit: `GITHUB_REPOSITORY=agentage/agentage.io npx -y @agentage/cli@0.73.0 extension release --changed --dry-run`.
+## Related
 
-## Documentation
-
-- [docs/develop.md](docs/develop.md): route limits, what `up` starts, logs, how the site is built, the words gate and next.
-- [CLAUDE.md](CLAUDE.md): rules for an agent that changes this repo.
+- [agentage/kit](https://github.com/agentage/kit): the kit `@agentage/extension` that runs the parts.
+- [agentage/examples](https://github.com/agentage/examples): the probe, an example of the same shape.
+- [agentage/cli](https://github.com/agentage/cli): the `agentage` command.
 
 ## License
 
-MIT, see [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE).

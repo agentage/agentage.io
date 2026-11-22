@@ -1,15 +1,15 @@
 # CLAUDE.md - agentage.io
 
-For an agent that changes this repo. What it is, how to run it and how to release it: [README.md](README.md). The kit rules are in the READMEs of [`@agentage/extension`](https://www.npmjs.com/package/@agentage/extension). A deployed example of the same shape is [agentage/extension-probe](https://github.com/agentage/extension-probe). The engineering standards load from `~/projects/CLAUDE.md` above this repo; this file links them and does not copy them.
+For an agent that changes this repo. What it is, how to run it and how to release it: [README.md](README.md). The kit rules are in the READMEs of [`@agentage/extension`](https://www.npmjs.com/package/@agentage/extension). A deployed example of the same shape is [agentage/examples](https://github.com/agentage/examples). The engineering standards load from `~/projects/CLAUDE.md` above this repo; this file links them and does not copy them.
 
 ## Where facts live
 
-- Route table and scopes: `README.md` "What it serves"; status codes and body limits: `openapi.json` (generated; never edit by hand).
+- Route table and scopes: `README.md` "What is in this repo"; status codes and body limits: `openapi.json` (generated; never edit by hand).
 - Rate limit, `mcp-registry-auth` 404: `docs/develop.md` "Routes"; code `src/api/rate-limit.ts`, `src/api/well-known.ts`.
-- Run it locally, ports, tokens: `README.md` "Run it locally"; what `up` starts, logs: `docs/develop.md` "Run it locally".
+- Run it locally, ports, tokens: `README.md` "How to work on it"; what `up` starts, logs: `docs/develop.md` "Run it locally".
 - Site export, `site/` origin, lint skip: `docs/develop.md` "The site"; code `scripts/export-site.mjs`.
 - Words gate and next: `docs/develop.md` "Words".
-- Release rules and refusals: `README.md` "Release"; code `.github/workflows/release.yml`.
+- Release rules and refusals: `README.md` "How a change is released"; code `.github/workflows/release.yml`.
 - Database tables and migration rules: `migrations/`, rules in the Rules section below.
 - Settings and secrets: the `agentage` block of `package.json`; seed values in `secrets.example.json`.
 - CI jobs and the gate floor (`MIN_EXECUTED`): `.github/workflows/ci.yml`. Test coverage floor: `vitest.config.ts`.
@@ -28,7 +28,7 @@ Read the file named here before you read `src/`.
 - Routes are in `src/api/subscribers.ts` and `src/api/well-known.ts`. The rate limit is in `src/api/rate-limit.ts`.
 - Secrets are `resend` and `unsubscribe`, scoped to the api part: the pages part mounts none, so an app host runs `root-pages` with no secret. The kit refuses an empty secret, so `resend` set to `off` sends no mail. The unsubscribe link is an HMAC-SHA256 of the email with the `unsubscribe` secret. A rotated secret invalidates old links.
 - Settings (`platform`, `market`, `cloud`, `mcpRegistryAuth`, `mailFrom`, `issuer`) are declared in the `agentage` block of `package.json`.
-- Account routes live in agentage/extension-platform, not here.
+- Account routes live in the platform extension, in a private repo, not here.
 
 ## Rules
 
@@ -58,7 +58,7 @@ CI (`.github/workflows/ci.yml`) runs the same two steps. Its `local` job then ru
 
 ## After a release
 
-- A merge to the estate (agentage/estate) master deploys `next`. The deploy applies the stacks, checks each part's `/health`, then runs `npm run e2e -- root gate next`.
-- The `version` field of the `root` row in `estate.yaml` sets which release runs. To change what runs, release a new version and change that field.
+- The release makes `root@<version>` with its images and record. It does not change next. A pull request in the apphosts repo (private) changes the `root` line of `root/installation.json`; the `root` row has no `track`, so a person or an agent makes it by hand. The merge of that pull request starts the estate deploy.
+- That deploy applies the stacks, checks each part's `/health`, then runs `npm run e2e -- root gate next`.
 - Read a red deploy on the Actions tab of agentage/estate. It names the part and the check. Search the part's logs for the request's `agcid`.
 - A kit minor reaches this repo through the Friday Dependabot group PR. Merge it when CI is green.
