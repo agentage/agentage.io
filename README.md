@@ -70,7 +70,7 @@ A merge to master is the release. `release.yml` runs `agentage extension release
 
 Every merge changes the repo, so every merge releases, a docs-only or CI-only merge too. The root row of `apphosts` has no `track`, so a release installs only when a PR there raises its `version`.
 
-Preview what a merge would release, from a clone whose `origin/master` holds the commit: `GITHUB_REPOSITORY=agentage/agentage.io npx -y @agentage/cli@0.71.0 extension release --changed --dry-run`.
+Preview what a merge would release, from a clone whose `origin/master` holds the commit: `GITHUB_REPOSITORY=agentage/agentage.io npx -y @agentage/cli@0.73.0 extension release --changed --dry-run`.
 
 ## Documentation
 
