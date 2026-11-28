@@ -34,4 +34,4 @@ jobs:
         run: printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
       - env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx -y @agentage/cli@0.73.0 extension release --changed # pinned: the merge-release cli
+        run: npx -y @agentage/cli@0.75.0 extension release --changed # pinned: the merge-release cli
