@@ -1,8 +1,6 @@
 # repo-doctor config for this repo; schema in agentage/automation scripts/repo-doctor/README.md.
 class: express-service
 waive:
-  - id: cicd-no-npm-token
-    reason: 'the first npm publish of an extension is staged with a token until the trusted publisher exists (the starting-point repo never releases: `agentage extension release` refuses its id)'
   - id: rb-published-files
     reason: 'no prepare-release: this repo never bumps; an extension made from it adds one with the release loop'
   - id: obs-kit
