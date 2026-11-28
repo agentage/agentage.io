@@ -18,7 +18,7 @@
   },
   "engines": {
     "node": ">=22",
-    "agentage": "^0.24"
+    "agentage": "^0.25"
   },
   "agentage": {
     "id": "root",
@@ -97,12 +97,12 @@
     "prepublishOnly": "npm run verify"
   },
   "dependencies": {
-    "@agentage/extension": "^0.24.0",
+    "@agentage/extension": "^0.25.0",
     "express": "^5.1.0",
     "zod": "^4.2.0"
   },
   "devDependencies": {
-    "@agentage/cli": "^0.75.0",
+    "@agentage/cli": "^0.76.0",
     "@electric-sql/pglite": "0.5.16",
     "@playwright/test": "1.65.1",
     "@types/node": "26.6.6",
