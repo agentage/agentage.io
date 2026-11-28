@@ -51,7 +51,7 @@ Read the file named here before you read `src/`.
 - `site/` is copied from agentage/landing and patched for static export. It has its own `package.json` and lockfile. Dependabot covers `/` and `/site`.
 - `npm run build` runs `scripts/export-site.mjs`: `next build` with the host token `site-fqdn.sentinel.invalid`, then `out/` to `dist/pages/site/`, and `blog-md/<slug>` to `blog/<slug>.md`. It drops the baked `mcp-registry-auth`, because the api part serves it. The kit swaps the token for the deployment host at start.
 - A content change goes into agentage/landing and into `site/` on the same day. The parity run in agentage/e2e compares this site with the live agentage.io and shows a miss.
-- `site/` still uses `@agentage/design-system` ^0.20.1 (`site/package.json`, `site/src/app/globals.css`). The move to `@agentage/components` is still open.
+- `site/` still uses `@agentage/design-system` ^0.20.1 (`site/package.json`, `site/src/app/globals.css`). It stays there by decision of the owner (2026-11-28): an accepted exception. New UI outside `site/` still follows the rule above.
 
 ## Commands that prove a change
 
