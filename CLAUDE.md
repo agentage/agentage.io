@@ -39,12 +39,19 @@ Read the file named here before you read `src/`.
 - Tests sit beside the code as `src/**/*.test.ts`. Coverage floor: 70 on all four metrics (`vitest.config.ts`). `npm run test:e2e` finds no `*.spec.ts` file here and passes with no tests.
 - After a route change run `npm run build`, `npx agentage extension check --write`, then `npm run format`. `check` compares `openapi.json` with the code.
 - Do not move a `root@*` tag. Do not publish or release from a laptop: a merge to master is the release.
+- UI (an `app`, `ui` or `pages` part) is built from `@agentage/components`. Look in the catalog
+  first: <https://components.next.agentage.io>. Compose from its components and pattern pages
+  before you write local UI. Fix a missing or wrong component with a pull request in
+  `agentage/components`, not with a local copy, and say the gap in the reply. Do not use
+  `@agentage/design-system` in new work. A prototype or an HTML draft uses the same tokens and
+  scale. Scale, props and names: the `CLAUDE.md` of `agentage/components`.
 
 ## The site
 
 - `site/` is copied from agentage/landing and patched for static export. It has its own `package.json` and lockfile. Dependabot covers `/` and `/site`.
 - `npm run build` runs `scripts/export-site.mjs`: `next build` with the host token `site-fqdn.sentinel.invalid`, then `out/` to `dist/pages/site/`, and `blog-md/<slug>` to `blog/<slug>.md`. It drops the baked `mcp-registry-auth`, because the api part serves it. The kit swaps the token for the deployment host at start.
 - A content change goes into agentage/landing and into `site/` on the same day. The parity run in agentage/e2e compares this site with the live agentage.io and shows a miss.
+- `site/` still uses `@agentage/design-system` ^0.20.1 (`site/package.json`, `site/src/app/globals.css`). The move to `@agentage/components` is still open.
 
 ## Commands that prove a change
 
